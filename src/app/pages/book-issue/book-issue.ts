@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import * as XLSX from 'xlsx';
 import { Api } from '../../services/api';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-book-issue',
@@ -14,7 +15,7 @@ import { Api } from '../../services/api';
 })
 export class BookIssue implements OnInit {
 
-  private baseUrl = 'https://localhost:7126/api';
+  private baseUrl = environment.apiUrl;
 
   transactions: any[] = [];
   filteredTransactions: any[] = [];

@@ -7,8 +7,9 @@ import { Observable } from 'rxjs';
 })
 export class Api {
 
-  baseUrl = 'https://localhost:7126/api';
-
+  // baseUrl = 'https://localhost:7126/api';
+  baseUrl = 'https://lmsapi20260528173411-afckbkftd0bsfzee.westeurope-01.azurewebsites.net/api';
+  
   constructor(private http: HttpClient) {}
 
   // =========================

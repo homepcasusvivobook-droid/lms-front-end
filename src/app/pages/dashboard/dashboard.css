@@ -1,0 +1,19 @@
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 18px;
+}
+
+  .card b {
+    display: block;
+    font-size: 32px;
+    margin-top: 10px;
+  }

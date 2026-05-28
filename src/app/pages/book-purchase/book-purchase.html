@@ -1,0 +1,340 @@
+<div class="purchase-page">
+
+  <div class="page-header">
+    <h1>Book Purchase</h1>
+
+    <button *ngIf="canAddPurchase()"
+        class="add-btn"
+        (click)="openAddModal()">
+      + Add Purchase
+    </button>
+  </div>
+
+  <div class="search-section purchase-filter-row">
+
+    <input
+      type="text"
+      [(ngModel)]="searchText"
+      (input)="onSearch()"
+      placeholder="Search Invoice / Store">
+
+    <div class="date-filter">
+      <label>From Date</label>
+      <input
+        type="date"
+        [(ngModel)]="fromDate">
+    </div>
+
+    <div class="date-filter">
+      <label>To Date</label>
+      <input
+        type="date"
+        [(ngModel)]="toDate">
+    </div>
+
+    <button
+      class="filter-search-btn"
+      (click)="onSearch()">
+      Search
+    </button>
+
+  </div>
+
+  <div class="table-wrapper">
+
+    <table class="purchase-table">
+
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Invoice No</th>
+          <th>Store Name</th>
+          <th>Purchase Date</th>
+          <th>Total Cost</th>
+          <th>Remarks</th>
+          <th *ngIf="canView()">View</th>
+          <th *ngIf="canView()">Print Barcode</th>
+          <th *ngIf="canEdit()">Edit</th>
+          <th *ngIf="canDelete()">Delete</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let item of filteredPurchases">
+          <td>{{ item.id }}</td>
+          <td>{{ item.invoiceNo }}</td>
+          <td>{{ item.storeName }}</td>
+          <td>{{ formatDate(item.purchaseDate) }}</td>
+          <td>{{ item.totalCost }}</td>
+          <td>{{ item.remarks }}</td>
+
+          <td *ngIf="canView()">
+             <button class="view-btn"
+             (click)="viewPurchase(item)">
+              View
+            </button>
+          </td>
+
+          <td *ngIf="canView()">
+            <button class="barcode-btn"
+             (click)="printBarcode(item)">
+             Print Barcode
+            </button>
+          </td>
+
+          <td *ngIf="canEdit()">
+            <button class="edit-btn"
+             (click)="editPurchase(item)">
+              Edit
+            </button>
+          </td>
+
+          <td *ngIf="canDelete()">
+            <button class="delete-btn"
+             (click)="deletePurchase(item.id)">
+              Delete
+            </button>
+        </td>
+        </tr>
+      </tbody>
+
+    </table>
+
+  </div>
+
+</div>
+
+<div class="modal-backdrop" *ngIf="showAddModal || showEditModal">
+
+  <div class="modal-box large-modal">
+
+    <div class="modal-header">
+      <h2>{{ showEditModal ? 'Edit Purchase' : 'Add Purchase' }}</h2>
+
+      <button class="close-btn" (click)="closeModal()">
+        X
+      </button>
+    </div>
+
+    <div class="form-grid">
+
+      <div class="form-group">
+        <label>Invoice No</label>
+        <input type="text" [(ngModel)]="purchaseForm.invoiceNo">
+      </div>
+
+      <div class="form-group">
+        <label>Store Name</label>
+        <input type="text" [(ngModel)]="purchaseForm.storeName">
+      </div>
+
+      <div class="form-group">
+        <label>Purchase Date</label>
+        <input type="date" [(ngModel)]="purchaseForm.purchaseDate">
+      </div>
+
+      <div class="form-group">
+        <label>Total Cost</label>
+        <input type="number" [(ngModel)]="purchaseForm.totalCost" readonly>
+      </div>
+
+      <div class="form-group full-width">
+        <label>Remarks</label>
+        <input type="text" [(ngModel)]="purchaseForm.remarks">
+      </div>
+
+    </div>
+
+    <div class="detail-table-wrapper">
+
+      <table class="purchase-table">
+
+        <thead>
+          <tr>
+            <th>ISBN</th>
+            <th>Title</th>
+            <th>Language</th>
+            <th>Category</th>
+            <th>Custom Barcode</th>
+            <th>Shelf</th>
+            <th>Rack</th>
+            <th>Qty</th>
+            <th>Cost</th>
+            <th>Remarks</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let row of purchaseForm.details; let i = index">
+
+            <td>
+              <input
+                type="text"
+                [(ngModel)]="row.isbn"
+                (change)="onISBNChange(row)">
+            </td>
+
+            <td>
+              <input type="text" [(ngModel)]="row.title" readonly>
+            </td>
+
+            <td>
+              <input type="text" [(ngModel)]="row.language" readonly>
+            </td>
+
+            <td>
+              <input type="text" [(ngModel)]="row.category" readonly>
+            </td>
+
+            <td>
+              <input type="text" [(ngModel)]="row.customBarcode" readonly>
+            </td>
+
+            <td>
+              <select [(ngModel)]="row.shelfId">
+                <option value="">Select</option>
+
+                <option
+                  *ngFor="let s of shelves"
+                  [value]="s.id">
+                  {{ s.shelfCode }} - {{ s.shelfName }}
+                </option>
+              </select>
+            </td>
+
+            <td>
+              <select [(ngModel)]="row.rackId">
+                <option value="">Select</option>
+
+                <option
+                  *ngFor="let r of racks"
+                  [value]="r.id">
+                  {{ r.rackCode }} - {{ r.rackName }}
+                </option>
+              </select>
+            </td>
+
+            <td>
+              <input
+                type="number"
+                [(ngModel)]="row.noOfCopies"
+                (input)="calculateTotal()">
+            </td>
+
+            <td>
+              <input
+                type="number"
+                [(ngModel)]="row.cost"
+                (input)="calculateTotal()">
+            </td>
+
+            <td>
+              <input type="text" [(ngModel)]="row.remarks">
+            </td>
+            
+            <td>
+              <button
+               class="row-delete-btn"
+               (click)="removeRow(i)">
+                Delete
+              </button>
+            </td>
+
+          </tr>
+        </tbody>
+
+      </table>
+
+    </div>
+
+    <div class="footer-buttons">
+
+      <button class="add-row-btn" (click)="addRow()">
+        + Add Row
+      </button>
+
+      <div class="right-buttons">
+
+        <button class="cancel-btn" (click)="closeModal()">
+          Cancel
+        </button>
+
+        <button
+          class="save-btn"
+          *ngIf="showAddModal"
+          (click)="savePurchase()">
+          Save
+        </button>
+
+        <button
+          class="save-btn"
+          *ngIf="showEditModal"
+          (click)="updatePurchase()">
+          Update
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<div class="modal-backdrop" *ngIf="showViewModal">
+
+  <div class="modal-box view-modal">
+
+    <div class="modal-header">
+      <h2>Purchase Details</h2>
+
+      <button class="close-btn" (click)="closeModal()">
+        X
+      </button>
+    </div>
+
+    <div class="view-section">
+
+      <div><strong>Invoice :</strong> {{ selectedPurchase?.invoiceNo }}</div>
+      <div><strong>Store :</strong> {{ selectedPurchase?.storeName }}</div>
+      <div><strong>Date :</strong> {{ formatDate(selectedPurchase?.purchaseDate) }}</div>
+      <div><strong>Total :</strong> {{ selectedPurchase?.totalCost }}</div>
+
+    </div>
+
+    <div class="detail-table-wrapper">
+
+      <table class="purchase-table">
+
+        <thead>
+          <tr>
+            <th>ISBN</th>
+            <th>Title</th>
+            <th>Custom Barcode</th>
+            <th>Shelf</th>
+            <th>Rack</th>
+            <th>Qty</th>
+            <th>Cost</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let d of selectedPurchase?.details?.$values || selectedPurchase?.details">
+            <td>{{ d.isbn }}</td>
+            <td>{{ d.title }}</td>
+            <td>{{ d.customBarcode }}</td>
+            <td>{{ d.shelfName }}</td>
+            <td>{{ d.rackName }}</td>
+            <td>{{ d.noOfCopies }}</td>
+            <td>{{ d.cost }}</td>
+          </tr>
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</div>

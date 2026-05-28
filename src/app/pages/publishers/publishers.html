@@ -1,0 +1,100 @@
+<div class="publishers-page">
+
+  <div class="page-header">
+    <h1>Publishers</h1>
+
+    <button
+      class="add-btn"
+      *ngIf="canAdd()"
+      (click)="addPublisher()">
+      + Add Publisher
+    </button>
+  </div>
+
+  <div class="search-box">
+    <input
+      type="text"
+      placeholder="Search publishers..."
+      [(ngModel)]="searchText">
+  </div>
+
+  <div class="table-wrapper">
+    <table class="publishers-table">
+
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Publisher Name</th>
+          <th *ngIf="canEdit()">Edit</th>
+          <th *ngIf="canDelete()">Delete</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let publisher of filteredPublishers">
+          <td>{{ getId(publisher) }}</td>
+          <td>{{ getName(publisher) }}</td>
+
+          <td *ngIf="canEdit()">
+            <button
+              class="edit-btn"
+              (click)="editPublisher(publisher)">
+              Edit
+            </button>
+          </td>
+
+          <td *ngIf="canDelete()">
+            <button
+              class="delete-btn"
+              (click)="deletePublisher(publisher)">
+              Delete
+            </button>
+          </td>
+        </tr>
+      </tbody>
+
+    </table>
+  </div>
+
+</div>
+
+<div class="popup-overlay" *ngIf="showForm">
+
+  <div class="popup-box">
+
+    <div class="popup-header">
+      <h2>{{ isEdit ? 'Edit Publisher' : 'Add Publisher' }}</h2>
+
+      <button
+        class="close-popup-btn"
+        (click)="closeForm()">
+        X
+      </button>
+    </div>
+
+    <div class="form-group">
+      <label>Publisher Name</label>
+
+      <input
+        type="text"
+        [(ngModel)]="publisherForm.name"
+        placeholder="Enter publisher name">
+    </div>
+
+    <div class="action-buttons">
+      <button
+        class="close-btn"
+        (click)="closeForm()">
+        Close
+      </button>
+
+      <button
+        class="save-btn"
+        (click)="savePublisher()">
+        Save
+      </button>
+    </div>
+
+  </div>
+
+</div>

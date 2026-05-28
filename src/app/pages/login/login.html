@@ -1,0 +1,30 @@
+<div class="login-page">
+
+  <div class="image-panel">
+    <img src="/images/LoginImage.png" alt="Church Image">
+  </div>
+
+  <div class="login-panel">
+
+    <div class="login-box">
+
+      <h1>Login</h1>
+      <p>Library Management System</p>
+
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" [(ngModel)]="username" placeholder="Enter username">
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" [(ngModel)]="password" placeholder="Enter password">
+      </div>
+
+      <button type="button" (click)="login()">Login</button>
+
+    </div>
+
+  </div>
+
+</div>

@@ -1,0 +1,457 @@
+<div class="users-page">
+
+  <div class="top-bar">
+    <h1>Users</h1>
+
+    <button class="add-btn" (click)="addUser()">
+      + Add User
+    </button>
+  </div>
+
+  <input
+    type="text"
+    placeholder="Search user..."
+    [(ngModel)]="searchText"
+    class="search-box"
+  />
+
+  <table class="users-table">
+
+    <thead>
+      <tr>
+
+        <th (click)="sortData('fullName')">
+          Full Name ↕
+        </th>
+
+        <th (click)="sortData('username')">
+          Username ↕
+        </th>
+
+        <th>
+          Password
+        </th>
+
+        <th (click)="sortData('userTypeName')">
+          User Type ↕
+        </th>
+
+        <th (click)="sortData('validityFrom')">
+          Validity From ↕
+        </th>
+
+        <th (click)="sortData('validityTo')">
+          Validity To ↕
+        </th>
+
+        <th>
+          Can Create
+        </th>
+
+        <th>
+          View
+        </th>
+
+        <th>
+          Edit
+        </th>
+
+        <th>
+         Reset Password
+        </th>
+
+        <th *ngIf="canDeleteUser">
+          Delete
+        </th>
+
+      </tr>
+    </thead>
+
+    <tbody>
+
+      <tr *ngFor="let user of filteredUsers">
+
+        <td>{{ user.fullName }}</td>
+
+        <td>{{ user.username }}</td>
+
+        <td>********</td>
+
+        <td>{{ user.userTypeName }}</td>
+
+        <td>{{ user.validityFrom | date:'dd/MM/yyyy' }}</td>
+
+        <td>{{ user.validityTo | date:'dd/MM/yyyy' }}</td>
+
+        <td>
+          {{ user.canCreate ? 'YES' : 'NO' }}
+        </td>
+
+        <td>
+          <button
+            class="view-btn"
+            (click)="viewUser(user)">
+            View
+          </button>
+        </td>
+
+        <td>
+          <button
+            class="edit-btn"
+            (click)="editUser(user)">
+            Edit
+          </button>
+        </td>
+
+        <td>
+          <button
+            class="view-btn"
+            (click)="openResetPassword(user)">
+            Reset
+           </button>
+        </td>
+
+        <td *ngIf="canDeleteUser">
+          <button
+            class="delete-btn"
+            (click)="deleteUser(user)">
+            Delete
+          </button>
+        </td>
+
+      </tr>
+
+    </tbody>
+
+  </table>
+
+</div>
+
+<!-- CREATE USER -->
+
+<div class="modal" *ngIf="showCreate">
+
+  <div class="modal-content">
+
+    <div class="modal-header">
+
+      <h2>Create User</h2>
+
+      <button
+        class="close-btn"
+        (click)="closeCreate()">
+        X
+      </button>
+
+    </div>
+
+    <div class="form-grid">
+
+      <div>
+        <label>Full Name</label>
+
+        <input
+          type="text"
+          [(ngModel)]="fullName">
+      </div>
+
+      <div>
+        <label>Username</label>
+
+        <input
+          type="text"
+          [(ngModel)]="username">
+      </div>
+
+      <div>
+        <label>Password</label>
+
+        <input
+          type="text"
+          [(ngModel)]="password">
+      </div>
+
+      <div>
+        <label>User Type</label>
+
+        <select [(ngModel)]="userTypeId">
+
+          <option value="0">
+            Select User Type
+          </option>
+
+          <option
+            *ngFor="let item of userTypes"
+            [value]="item.id">
+
+            {{ item.userTypeName }}
+
+          </option>
+
+        </select>
+      </div>
+
+      <div>
+        <label>Validity From</label>
+
+        <input
+          type="date"
+          [(ngModel)]="validityFrom">
+      </div>
+
+      <div>
+        <label>Validity To</label>
+
+        <input
+          type="date"
+          [(ngModel)]="validityTo">
+      </div>
+
+    </div>
+
+    <div class="modal-footer">
+
+      <button
+        class="cancel-btn"
+        (click)="closeCreate()">
+
+        Close
+
+      </button>
+
+      <button
+        class="save-btn"
+        (click)="saveUser()">
+
+        Save User
+
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- EDIT USER -->
+
+<div class="modal" *ngIf="showEdit">
+
+  <div class="modal-content">
+
+    <div class="modal-header">
+
+      <h2>Edit User</h2>
+
+      <button
+        class="close-btn"
+        (click)="closeEdit()">
+        X
+      </button>
+
+    </div>
+
+    <div class="form-grid">
+
+      <div>
+        <label>Full Name</label>
+
+        <input
+          type="text"
+          [(ngModel)]="fullName">
+      </div>
+
+      <div>
+        <label>Username</label>
+
+        <input
+          type="text"
+          [(ngModel)]="username">
+      </div>
+
+      <div>
+        <label>Password</label>
+
+        <input
+          type="text"
+          placeholder="Leave blank to keep old password"
+          [(ngModel)]="password">
+      </div>
+
+      <div>
+        <label>User Type</label>
+
+        <select [(ngModel)]="userTypeId">
+
+          <option value="0">
+            Select User Type
+          </option>
+
+          <option
+            *ngFor="let item of userTypes"
+            [value]="item.id">
+
+            {{ item.userTypeName }}
+
+          </option>
+
+        </select>
+      </div>
+
+      <div>
+        <label>Validity From</label>
+
+        <input
+          type="date"
+          [(ngModel)]="validityFrom">
+      </div>
+
+      <div>
+        <label>Validity To</label>
+
+        <input
+          type="date"
+          [(ngModel)]="validityTo">
+      </div>
+
+    </div>
+
+    <div class="modal-footer">
+
+      <button
+        class="cancel-btn"
+        (click)="closeEdit()">
+
+        Close
+
+      </button>
+
+      <button
+        class="save-btn"
+        (click)="updateUser()">
+
+        Update User
+
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- VIEW USER -->
+
+<div class="modal" *ngIf="showView">
+
+  <div class="view-modal">
+
+    <div class="modal-header">
+
+      <h2>User Permissions</h2>
+
+      <button
+        class="close-btn"
+        (click)="closeView()">
+        X
+      </button>
+
+    </div>
+
+    <table class="permission-table">
+
+      <tr>
+        <td>Can Create</td>
+        <td>{{ selectedUser?.canCreate ? 'YES' : 'NO' }}</td>
+      </tr>
+
+      <tr>
+        <td>Can View</td>
+        <td>{{ selectedUser?.canView ? 'YES' : 'NO' }}</td>
+      </tr>
+
+      <tr>
+        <td>Can Edit</td>
+        <td>{{ selectedUser?.canEdit ? 'YES' : 'NO' }}</td>
+      </tr>
+
+      <tr>
+        <td>Can Delete</td>
+        <td>{{ selectedUser?.canDelete ? 'YES' : 'NO' }}</td>
+      </tr>
+
+    </table>
+
+  </div>
+
+</div>
+<!-- RESET PASSWORD -->
+
+<div class="modal" *ngIf="showResetPassword">
+
+  <div class="modal-content">
+
+    <div class="modal-header">
+
+      <h2>Reset Password</h2>
+
+      <button
+        class="close-btn"
+        (click)="closeResetPassword()">
+        X
+      </button>
+
+    </div>
+
+    <div class="form-grid">
+
+      <div>
+        <label>User</label>
+
+        <input
+          type="text"
+          [value]="resetUser?.username"
+          readonly>
+      </div>
+
+      <div>
+        <label>New Password</label>
+
+        <input
+          type="password"
+          [(ngModel)]="newPassword">
+      </div>
+
+      <div>
+        <label>Confirm Password</label>
+
+        <input
+          type="password"
+          [(ngModel)]="confirmPassword">
+      </div>
+
+    </div>
+
+    <div class="modal-footer">
+
+      <button
+        class="cancel-btn"
+        (click)="closeResetPassword()">
+
+        Close
+
+      </button>
+
+      <button
+        class="save-btn"
+        (click)="resetPassword()">
+
+        Reset Password
+
+      </button>
+
+    </div>
+
+  </div>
+
+</div>

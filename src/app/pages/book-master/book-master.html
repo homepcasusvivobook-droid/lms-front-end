@@ -1,0 +1,223 @@
+<div class="book-master-page">
+
+  <div class="page-header">
+    <h1>Book Master</h1>
+
+    <div class="header-actions">
+      <button *ngIf="canExportExcel()" class="export-btn" (click)="exportBooksToExcel()">Export Excel</button>
+      <button *ngIf="canBookImport()" class="import-btn" (click)="openImport()">Book Import</button>
+      <button *ngIf="canAddBook()" class="create-btn" (click)="openAddBook()">+ Add Book</button>
+    </div>
+  </div>
+
+  <div class="search-box">
+    <input type="text" placeholder="Search books..." [(ngModel)]="searchText">
+  </div>
+
+  <div class="table-wrapper">
+    <table class="books-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Custom Barcode</th>
+          <th>Title</th>
+          <th>Author</th>
+          <th>Publisher</th>
+          <th>Language</th>
+          <th>Category</th>
+          <th>Created On Date</th>
+          <th *ngIf="canEdit()">Edit</th>
+          <th *ngIf="canDelete()">Delete</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let book of filteredBooks">
+          <td>{{ book.id }}</td>
+          <td>{{ book.customBarcode }}</td>
+          <td>{{ book.title }}</td>
+          <td>{{ book.authorName }}</td>
+          <td>{{ book.publisherName }}</td>
+          <td>{{ book.languageName }}</td>
+          <td>{{ book.categoryName }}</td>
+          <td>{{ book.createdDate | date:'dd-MM-yyyy' }}</td>
+
+          <td *ngIf="canEdit()">
+            <button class="btn-edit" (click)="editBook(book)">Edit</button>
+          </td>
+
+          <td *ngIf="canDelete()">
+            <button class="btn-delete" (click)="deleteBook(book)">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<div class="popup-overlay" *ngIf="showAddBook">
+  <div class="popup-box">
+
+    <div class="popup-header">
+      <h2>{{ editMode ? 'Edit Book' : 'Add Book' }}</h2>
+      <button class="close-popup-btn" (click)="closeAddBook()">X</button>
+    </div>
+
+    <div class="book-form">
+
+      <div class="form-group">
+        <label>ISBN</label>
+        <input type="text" [(ngModel)]="bookForm.isbn">
+      </div>
+
+      <div class="form-group">
+        <label>Title</label>
+        <input type="text" [(ngModel)]="bookForm.title">
+      </div>
+
+      <div class="form-group">
+        <label>Author</label>
+        <select [(ngModel)]="bookForm.authorId">
+          <option [ngValue]="null">Select Author</option>
+          <option *ngFor="let a of authors" [ngValue]="getId(a)">
+            {{ getAuthorName(a) }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Publisher</label>
+        <select [(ngModel)]="bookForm.publisherId">
+          <option [ngValue]="null">Select Publisher</option>
+          <option *ngFor="let p of publishers" [ngValue]="getId(p)">
+            {{ getPublisherName(p) }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Language</label>
+        <select [(ngModel)]="bookForm.languageId" (change)="generateBarcodePreview()">
+          <option [ngValue]="null">Select Language</option>
+          <option *ngFor="let l of languages" [ngValue]="getId(l)">
+            {{ getLanguageName(l) }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Category</label>
+        <select [(ngModel)]="bookForm.categoryId" (change)="generateBarcodePreview()">
+          <option [ngValue]="null">Select Category</option>
+          <option *ngFor="let c of categories" [ngValue]="getId(c)">
+            {{ getCategoryName(c) }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Code Prefix</label>
+        <input type="text" [value]="bookForm.bookPrefix" readonly>
+      </div>
+
+      <div class="form-group">
+        <label>Code No</label>
+        <input type="text" [value]="bookForm.codeNo" readonly>
+      </div>
+
+      <div class="form-group full-width">
+        <label>Custom Barcode</label>
+        <input type="text" [value]="bookForm.customBarcode" readonly>
+      </div>
+
+    </div>
+
+    <div class="action-buttons">
+      <button class="close-btn" (click)="closeAddBook()">Close</button>
+      <button class="save-btn" (click)="saveBook()">Save</button>
+    </div>
+
+  </div>
+</div>
+
+<div class="popup-overlay" *ngIf="showImport">
+  <div class="popup-box large-popup">
+
+    <div class="popup-header">
+      <h2>Book Import</h2>
+      <button class="close-popup-btn" (click)="closeImport()">X</button>
+    </div>
+
+    <div class="import-card">
+      <label>Select Excel File</label>
+      <input type="file" accept=".xlsx,.xls" (change)="onFileSelected($event)">
+
+      <p *ngIf="selectedFileName">
+        <strong>Selected File:</strong> {{ selectedFileName }}
+      </p>
+    </div>
+
+    <div class="import-card" *ngIf="totalRows > 0">
+      <h3>Import Status</h3>
+
+      <div class="progress">
+        <div class="progress-bar" [style.width.%]="progressPercent">
+          {{ progressPercent }}%
+        </div>
+      </div>
+
+      <p>
+        <strong>Total:</strong> {{ totalRows }} |
+        <strong>Processed:</strong> {{ processedRows }} |
+        <strong>Inserted:</strong> {{ insertedRows }} |
+        <strong>Skipped:</strong> {{ skippedRows }}
+      </p>
+
+      <button class="save-btn" (click)="startImport()" [disabled]="isImporting">
+        {{ isImporting ? 'Importing...' : 'Start Import' }}
+      </button>
+
+      <button class="close-btn" (click)="clearImport()" [disabled]="isImporting">
+        Clear
+      </button>
+    </div>
+
+    <div class="import-card" *ngIf="importedBooks.length > 0">
+      <h3>Preview Data</h3>
+
+      <div class="preview-wrapper">
+        <table class="books-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Book Name</th>
+              <th>ISBN</th>
+              <th>CategoryId</th>
+              <th>AuthorId</th>
+              <th>PublisherId</th>
+              <th>LanguageId</th>
+              <th>CodePrefix</th>
+              <th>CodeNo</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let book of importedBooks; let i = index">
+              <td>{{ i + 1 }}</td>
+              <td>{{ book.bookName }}</td>
+              <td>{{ book.isbn }}</td>
+              <td>{{ book.categoryId }}</td>
+              <td>{{ book.authorId }}</td>
+              <td>{{ book.publisherId }}</td>
+              <td>{{ book.languageId }}</td>
+              <td>{{ book.codePrefix }}</td>
+              <td>{{ book.codeNo }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>

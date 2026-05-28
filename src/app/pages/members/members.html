@@ -1,0 +1,211 @@
+<div class="members-page">
+
+  <div class="page-header">
+    <h1>Members</h1>
+
+    <div class="header-actions">
+      <button *ngIf="canExportExcel()"
+        class="export-btn"
+        (click)="exportMembersToExcel()">
+        Export Excel
+      </button>
+
+      <button *ngIf="canAddMember()"
+        class="create-btn"
+        (click)="addMember()">
+        + Add Member
+      </button>
+    </div>
+  </div>
+
+  <div class="search-section">
+
+    <div class="search-box">
+      <input
+        type="text"
+        placeholder="Search members..."
+        [(ngModel)]="searchText">
+    </div>
+
+    <div class="date-filters">
+
+      <div class="filter-group">
+        <label>From Date</label>
+        <input type="date" [(ngModel)]="fromDate">
+      </div>
+
+      <div class="filter-group">
+        <label>To Date</label>
+        <input type="date" [(ngModel)]="toDate">
+      </div>
+
+      <button class="search-btn" (click)="searchMembers()">
+        Search
+      </button>
+
+    </div>
+
+  </div>
+
+  <div class="table-wrapper">
+    <table class="members-table">
+
+      <thead>
+        <tr>
+          <th (click)="sortData('memberId')">Member ID ↕</th>
+          <th (click)="sortData('cardexNo')">Cardex No ↕</th>
+          <th (click)="sortData('memberName')">Name ↕</th>
+          <th (click)="sortData('phoneNo')">Phone No ↕</th>
+          <th (click)="sortData('memberTypeName')">Member Type ↕</th>
+          <th (click)="sortData('membershipStatus')">Status ↕</th>
+          <th (click)="sortData('expiredOn')">Expired On ↕</th>
+          <th *ngIf="canEdit()">Edit</th>
+          <th *ngIf="canDelete()">Delete</th>
+          <th *ngIf="canRenewal()">Renewal</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let member of filteredMembers">
+          <td>{{ member.memberId }}</td>
+          <td>{{ member.cardexNo }}</td>
+          <td>{{ member.memberName }}</td>
+          <td>{{ member.phoneNo }}</td>
+          <td>{{ member.memberTypeName }}</td>
+          <td>{{ member.membershipStatus }}</td>
+          <td>{{ member.expiredOn ? (member.expiredOn | date:'dd-MM-yyyy') : '-' }}</td>
+
+          <td *ngIf="canEdit()">
+            <button class="edit-btn"
+             (click)="editMember(member)">
+              Edit
+            </button>
+          </td>
+
+          <td *ngIf="canDelete()">
+            <button class="delete-btn"
+              (click)="deleteMember(member)">
+              Delete
+             </button>
+          </td>
+
+          <td *ngIf="canRenewal()">
+              <button class="renew-btn"
+                (click)="openRenewal(member)">
+                Renewal
+               </button>
+          </td>
+        </tr>
+      </tbody>
+
+    </table>
+  </div>
+
+</div>
+
+<div class="popup-overlay" *ngIf="showForm">
+
+  <div class="popup-box">
+
+    <div class="popup-header">
+      <h2>{{ isEdit ? 'Edit Member' : 'Add Member' }}</h2>
+
+      <button class="close-popup-btn" (click)="closeForm()">
+        X
+      </button>
+    </div>
+
+    <div class="member-form">
+
+      <div class="form-group">
+        <label>Member ID</label>
+        <input type="text" [(ngModel)]="memberForm.memberId">
+      </div>
+
+      <div class="form-group">
+        <label>Cardex No</label>
+        <input type="text" [(ngModel)]="memberForm.cardexNo">
+      </div>
+
+      <div class="form-group">
+        <label>Member Name</label>
+        <input type="text" [(ngModel)]="memberForm.memberName">
+      </div>
+
+      <div class="form-group">
+        <label>Phone No</label>
+        <input type="text" [(ngModel)]="memberForm.phoneNo">
+      </div>
+
+      <div class="form-group">
+        <label>Email</label>
+        <input type="text" [(ngModel)]="memberForm.email">
+      </div>
+
+      <div class="form-group">
+        <label>Parish</label>
+        <input type="text" [(ngModel)]="memberForm.parish">
+      </div>
+
+      <div class="form-group">
+          <label>Member Type</label>
+          <select [(ngModel)]="memberForm.memberTypeId">
+            <option [ngValue]="null">Select Member Type</option>
+           <option *ngFor="let type of memberTypes" [ngValue]="type.id"> {{ type.memberTypeName }} </option>
+          </select>
+      </div>
+
+      <div class="form-group full-width">
+        <label>Address</label>
+        <input type="text" [(ngModel)]="memberForm.address">
+      </div>
+
+    </div>
+
+    <div class="action-buttons">
+      <button class="close-btn" (click)="closeForm()">Close</button>
+      <button class="save-btn" (click)="saveMember()">Save</button>
+    </div>
+
+  </div>
+
+</div>
+
+<div class="popup-overlay" *ngIf="showRenewal">
+
+  <div class="popup-box small-popup">
+
+    <div class="popup-header">
+      <h2>Membership Renewal</h2>
+
+      <button class="close-popup-btn" (click)="closeRenewal()">
+        X
+      </button>
+    </div>
+
+    <p><strong>Member:</strong> {{ selectedMember?.memberName }}</p>
+    <p><strong>Cardex No:</strong> {{ selectedMember?.cardexNo }}</p>
+
+    <div class="form-group">
+      <label>Amount Collected</label>
+      <input type="number" [(ngModel)]="renewalForm.amount">
+    </div>
+
+    <div class="form-group">
+      <label>Payment Date</label>
+      <input type="date" [(ngModel)]="renewalForm.paymentDate">
+    </div>
+
+    <div class="form-group">
+      <label>Remarks</label>
+      <input type="text" [(ngModel)]="renewalForm.remarks">
+    </div>
+
+    <div class="action-buttons">
+      <button class="close-btn" (click)="closeRenewal()">Close</button>
+      <button class="save-btn" (click)="saveRenewal()">Save Renewal</button>
+    </div>
+
+  </div>
+
+</div>

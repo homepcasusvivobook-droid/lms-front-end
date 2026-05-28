@@ -1,0 +1,345 @@
+<div class="book-issue-page">
+
+  <div class="page-header">
+    <h1>Book Issue / Return</h1>
+
+    <div class="header-buttons">
+      <button *ngIf="canExportExcel" class="export-btn" (click)="exportExcel()">Export Excel</button>
+      <button *ngIf="canBookIssue" class="issue-btn" (click)="openIssueModal()">+ Book Issue</button>
+    </div>
+  </div>
+
+  <div class="filter-area">
+
+  <div class="filter-row row-one">
+    <input
+      class="search-input"
+      type="text"
+      placeholder="Search Member : Name / Phone No / Cardex No, Book : ISBN / Custom Barcode"
+      [(ngModel)]="searchText"
+      (input)="applyFilters()"
+    />
+
+    <div class="radio-section">
+      <label><input type="radio" name="status" value="All" [(ngModel)]="statusFilter" (change)="applyFilters()" /> All</label>
+      <label><input type="radio" name="status" value="Pending" [(ngModel)]="statusFilter" (change)="applyFilters()" /> Pending To Return</label>
+      <label><input type="radio" name="status" value="Overdue" [(ngModel)]="statusFilter" (change)="applyFilters()" /> Overdue</label>
+      <label><input type="radio" name="status" value="Returned" [(ngModel)]="statusFilter" (change)="applyFilters()" /> Returned</label>
+    </div>
+  </div>
+
+  <div class="filter-row row-two">
+    <div class="date-filter">
+      <label>From Date</label>
+      <input type="date" [(ngModel)]="fromDate" />
+    </div>
+
+    <div class="date-filter">
+      <label>To Date</label>
+      <input type="date" [(ngModel)]="toDate" />
+    </div>
+
+    <div class="date-filter">
+      <label>Date Type</label>
+      <select [(ngModel)]="dateType">
+        <option value="IssueDate">Issue Date</option>
+        <option value="DueDate">Due Date</option>
+        <option value="ReturnDate">Return Date</option>
+      </select>
+    </div>
+
+    <button class="search-btn" (click)="applyFilters()">Search</button>
+  </div>
+
+</div>
+
+  <div class="table-wrapper">
+    <table class="issue-table">
+      <thead>
+        <tr>
+          <th>Cardex No</th>
+          <th>Member Name</th>
+          <th>Book Title</th>
+          <th>Issue Date</th>
+          <th>Due Date</th>
+          <th>Return Date</th>
+          <th>Status</th>
+          <th *ngIf="canReturn">Return</th>
+          <th *ngIf="canReIssue">Re-Issue</th>
+          <th *ngIf="canEdit">Edit</th>
+          <th *ngIf="canDelete">Delete</th>
+          <th>TrnsID</th>
+          <th>Phone No</th>
+          <th>ISBN</th>
+          <th>Book Copy Barcode</th>
+          <th>Remarks</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngIf="filteredTransactions.length === 0">
+          <td colspan="16" class="no-data">No transactions found</td>
+        </tr>
+
+        <tr *ngFor="let item of filteredTransactions">
+          <td>{{ item.cardexNo }}</td>
+          <td>{{ item.memberName }}</td>
+          <td>{{ item.bookName }}</td>
+          <td>{{ formatDate(item.issueDate) }}</td>
+          <td>{{ formatDate(item.dueDate) }}</td>
+          <td>{{ formatDate(item.returnDate) }}</td>  
+
+          <td>
+            <span class="status-badge" [ngClass]="item.status?.toLowerCase()">
+              {{ item.status }}
+            </span>
+          </td>
+
+          <td *ngIf="canReturn">
+            <button 
+              class="return-btn"
+              [disabled]="item.status === 'Returned'"
+              (click)="openReturnModal(item)">
+             Return
+            </button>
+          </td>
+
+          <td *ngIf="canReIssue">
+             <button
+              class="issue-btn-small"
+              [ngStyle]="{
+               'background-color': (item.remarks || '').toLowerCase().includes('re-issued') || (item.remarks || '').toLowerCase().includes('reissued')
+                ? '#7c3aed' : '#1e293b'}"
+               (click)="reIssue(item)">
+               Re-Issue
+            </button>
+          </td>
+
+          <td *ngIf="canEdit">
+             <button
+                class="edit-btn"
+                [ngStyle]="{
+                'background-color': (item.remarks || '').toLowerCase().includes('edited')
+                ? '#f59e0b' : '#2563eb'}"
+                [disabled]="item.status === 'Returned'"
+                (click)="editIssue(item)">
+                Edit
+              </button>
+          </td>
+
+          <td *ngIf="canDelete">
+            <button class="delete-btn" (click)="deleteTransaction(item.id)">
+             Delete
+            </button>
+          </td>
+
+          
+          <td>{{ item.id }}</td>
+          <td>{{ item.phoneNo || '-' }}</td>
+          <td>{{ item.isbn || '-'}}</td>
+          <td>{{ item.barcode || '-' }}</td>
+          <td>{{ item.remarks || '-' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<div class="modal-backdrop" *ngIf="showIssueModal">
+  <div class="modal-box large-modal">
+
+    <div class="modal-header">
+      <h2>Book Issue</h2>
+      <button class="close-btn" (click)="closeIssueModal()">×</button>
+    </div>
+
+    <div class="top-search-grid">
+
+      <div class="form-group search-group">
+        <label>Member</label>
+        <input
+          type="text"
+          placeholder="Search Cardex No / Phone No / Name"
+          [(ngModel)]="memberSearch"
+          (input)="searchMembers()"
+        />
+
+        <div class="suggestion-box" *ngIf="memberSuggestions.length > 0">
+          <div
+            class="suggestion-item"
+            *ngFor="let m of memberSuggestions"
+            (click)="selectMember(m)">
+            {{ m.memberName }} | {{ m.cardexNo }} | {{ m.phoneNo }} | {{ m.memberStatus }}
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group search-group">
+        <label>Book</label>
+        <input
+          type="text"
+          placeholder="Search ISBN / Book Title / Book Copy Barcode"
+          [(ngModel)]="bookSearch"
+          (input)="searchBooks()"
+        />
+
+        <div class="suggestion-box" *ngIf="bookSuggestions.length > 0">
+          <div
+            class="suggestion-item"
+            *ngFor="let b of bookSuggestions"
+            (click)="selectBook(b)">
+            {{ b.bookName }} | ISBN: {{ b.isbn }}
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="member-summary-card" *ngIf="selectedMember">
+  <div class="summary-row">
+    <div class="summary-box"><b>Member</b><span>{{ selectedMember.memberName }}</span></div>
+    <div class="summary-box"><b>Cardex</b><span>{{ selectedMember.cardexNo }}</span></div>
+    <div class="summary-box"><b>Phone</b><span>{{ selectedMember.phoneNo }}</span></div>
+    <div class="summary-box purple-box"><b>Type</b><span>{{ selectedMember.memberTypeName }}</span></div>
+    <div class="summary-box blue-box"><b>Max</b><span>{{ selectedMemberMaxBooks }}</span></div>
+    <div class="summary-box green-box"><b>Status</b><span>{{ selectedMember.memberStatus }}</span></div>
+    <div class="summary-box orange-box"><b>Expiry</b><span>{{ formatDate(selectedMember.membershipExpiredOn) }}</span></div>
+    <div class="summary-box yellow-box"><b>Pending</b><span>{{ selectedMemberPendingBooks }}</span></div>
+    <div class="summary-box green-box"><b>Remaining</b><span>{{ selectedMemberRemainingBooks - issueRows.length }}</span></div>
+  </div>
+</div>
+
+    <div class="selected-info" *ngIf="selectedBook">
+      <b>Selected Book:</b>
+      {{ selectedBook.bookName }}
+      |
+      ISBN: {{ selectedBook.isbn }}
+    </div>
+
+    <div class="copy-select-row">
+      <div class="form-group">
+        <label>Book Copy Barcode / Serial No</label>
+        <select [(ngModel)]="selectedCopyId">
+          <option [ngValue]="null">Select Copy</option>
+
+          <option
+            *ngFor="let c of availableCopiesForBook"
+            [ngValue]="c.id">
+            {{ c.barcode }} | Shelf: {{ c.shelfName }} | Rack: {{ c.rackName }}
+          </option>
+        </select>
+      </div>
+
+      <button class="add-row-btn" (click)="addSelectedCopyToGrid()">
+        + Add
+      </button>
+    </div>
+
+    <div class="issue-table-wrapper">
+      <table class="book-entry-table">
+        <thead>
+          <tr>
+            <th>Book Name</th>
+            <th>ISBN</th>
+            <th>Barcode</th>
+            <th>Shelf</th>
+            <th>Rack</th>
+            <th>Issue Date</th>
+            <th>Due Date</th>
+            <th>Delete</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngIf="issueRows.length === 0">
+            <td colspan="8" class="no-data">No book copy added</td>
+          </tr>
+
+          <tr *ngFor="let row of issueRows; let i = index">
+            <td>{{ row.bookName }}</td>
+            <td>{{ row.isbn }}</td>
+            <td>{{ row.barcode }}</td>
+            <td>{{ row.shelfName }}</td>
+            <td>{{ row.rackName }}</td>
+
+            <td>
+              <input
+                type="date"
+                [(ngModel)]="row.issueDate"
+                (change)="onIssueDateChange(row)"
+              />
+            </td>
+
+            <td>
+              <input type="date" [(ngModel)]="row.dueDate" />
+            </td>
+
+            <td>
+              <button class="delete-row-btn" (click)="removeIssueRow(i)">
+                Delete
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="form-group remarks-box">
+      <label>Remarks</label>
+      <textarea
+        placeholder="Enter issue remarks"
+        [(ngModel)]="commonRemarks">
+      </textarea>
+    </div>
+
+    <div class="footer-buttons">
+      <button class="cancel-btn" (click)="closeIssueModal()">Cancel</button>
+      <button
+        class="save-btn"
+        [disabled]="selectedMember && (selectedMemberRemainingBooks - issueRows.length) < 0"
+        (click)="saveIssue()">
+        Book Issue
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<div class="modal-backdrop" *ngIf="showReturnModal">
+  <div class="modal-box small-modal">
+
+    <div class="modal-header">
+      <h2>Return Book</h2>
+      <button class="close-btn" (click)="closeReturnModal()">×</button>
+    </div>
+
+    <div class="form-grid">
+
+      <div class="form-group">
+        <label>Return Date</label>
+        <input type="date" [(ngModel)]="returnModel.returnDate" />
+      </div>
+
+      <div class="form-group">
+        <label>Fine Amount</label>
+        <input type="number" [(ngModel)]="returnModel.fineAmount" />
+      </div>
+
+      <div class="form-group full-width">
+        <label>Remarks</label>
+        <textarea
+          placeholder="Enter return remarks"
+          [(ngModel)]="returnModel.remarks">
+        </textarea>
+      </div>
+
+    </div>
+
+    <div class="footer-buttons">
+      <button class="cancel-btn" (click)="closeReturnModal()">Cancel</button>
+      <button class="save-btn" (click)="saveReturn()">Save Return</button>
+    </div>
+
+  </div>
+</div>

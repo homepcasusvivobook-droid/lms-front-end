@@ -1,0 +1,60 @@
+<div class="sidebar" [class.collapsed]="isCollapsed">
+
+  <button class="collapse-btn" (click)="toggleSidebar()">
+    {{ isCollapsed ? '☰' : '‹' }}
+  </button>
+
+  <div class="sidebar-content" *ngIf="!isCollapsed">
+
+    <h2>LMS</h2>
+
+    <div class="user-info" *ngIf="currentUser">
+      <strong>{{ currentUser.fullName }}</strong>
+      <small>{{ currentUser.userTypeName }}</small>
+    </div>
+
+    <ul>
+
+      <li *ngIf="canAccess(['Admin','Secretary','Internal Auditor','Librarian','Assistant Librarian'])">
+        <a routerLink="/book-issue">Book Issue/Return</a>
+      </li>
+
+      <li *ngIf="canAccess(['Admin','Secretary','Treasurer','Internal Auditor','Librarian','Assistant Librarian'])">
+        <a routerLink="/dashboard">Dashboard</a>
+      </li>
+
+      <li *ngIf="canAccess(['Admin','Secretary','Internal Auditor','Librarian','Assistant Librarian'])">
+        <a routerLink="/books">Books</a>
+      </li>
+
+      <li *ngIf="canAccess(['Admin','Secretary','Treasurer','Internal Auditor','Librarian','Assistant Librarian'])">
+        <a routerLink="/members">Members</a>
+      </li>
+
+      <li *ngIf="canAccess(['Admin','Secretary','Internal Auditor','Librarian','Assistant Librarian'])">
+        <a routerLink="/masters">Masters</a>
+      </li>
+
+      <li *ngIf="canAccess(['Admin','Secretary','Treasurer','Internal Auditor','Librarian','Assistant Librarian'])">
+        <a routerLink="/book-purchase">Book Purchase</a>
+      </li>
+
+      <li *ngIf="canAccess(['Admin','Secretary'])">
+        <a routerLink="/users">Users</a>
+      </li>
+
+      <li>
+        <a routerLink="/change-password">
+        Change Password
+        </a>
+      </li>
+
+    </ul>
+
+    <button class="logout-btn" (click)="logout()">
+      Logout
+    </button>
+
+  </div>
+
+</div>

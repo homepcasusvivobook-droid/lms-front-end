@@ -1,0 +1,119 @@
+<div class="categories-page">
+
+  <div class="page-header">
+    <h1>Categories</h1>
+
+    <button
+      class="add-btn"
+      *ngIf="canAdd()"
+      (click)="addCategory()">
+      + Add Category
+    </button>
+  </div>
+
+  <div class="search-box">
+    <input
+      type="text"
+      placeholder="Search categories..."
+      [(ngModel)]="searchText">
+  </div>
+
+  <div class="table-wrapper">
+    <table class="categories-table">
+
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Category Code</th>
+          <th>Category Name</th>
+          <th>Category Prefix</th>
+          <th *ngIf="canEdit()">Edit</th>
+          <th *ngIf="canDelete()">Delete</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let category of filteredCategories">
+          <td>{{ getId(category) }}</td>
+          <td>{{ getCategoryCode(category) }}</td>
+          <td>{{ getCategoryName(category) }}</td>
+          <td>{{ getCategoryPrefix(category) }}</td>
+
+          <td *ngIf="canEdit()">
+            <button
+              class="edit-btn"
+              (click)="editCategory(category)">
+              Edit
+            </button>
+          </td>
+
+          <td *ngIf="canDelete()">
+            <button
+              class="delete-btn"
+              (click)="deleteCategory(category)">
+              Delete
+            </button>
+          </td>
+        </tr>
+      </tbody>
+
+    </table>
+  </div>
+
+</div>
+
+<div class="popup-overlay" *ngIf="showForm">
+
+  <div class="popup-box">
+
+    <div class="popup-header">
+      <h2>{{ isEdit ? 'Edit Category' : 'Add Category' }}</h2>
+
+      <button
+        class="close-popup-btn"
+        (click)="closeForm()">
+        X
+      </button>
+    </div>
+
+    <div class="form-group">
+      <label>Category Code</label>
+      <input
+        type="text"
+        [(ngModel)]="categoryForm.categoryCode"
+        placeholder="Enter category code">
+    </div>
+
+    <div class="form-group">
+      <label>Category Name</label>
+      <input
+        type="text"
+        [(ngModel)]="categoryForm.categoryName"
+        placeholder="Enter category name">
+    </div>
+
+    <div class="form-group">
+      <label>Category Prefix</label>
+      <input
+        type="text"
+        [(ngModel)]="categoryForm.categoryPrefix"
+        placeholder="Enter category prefix">
+    </div>
+
+    <div class="action-buttons">
+      <button
+        class="close-btn"
+        (click)="closeForm()">
+        Close
+      </button>
+
+      <button
+        class="save-btn"
+        (click)="saveCategory()">
+        Save
+      </button>
+    </div>
+
+  </div>
+
+</div>

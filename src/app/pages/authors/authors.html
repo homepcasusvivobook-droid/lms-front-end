@@ -1,0 +1,100 @@
+<div class="authors-page">
+
+  <div class="page-header">
+    <h1>Authors</h1>
+
+    <button
+      class="add-btn"
+      *ngIf="canAdd()"
+      (click)="addAuthor()">
+      + Add Author
+    </button>
+  </div>
+
+  <div class="search-box">
+    <input
+      type="text"
+      placeholder="Search authors..."
+      [(ngModel)]="searchText">
+  </div>
+
+  <div class="table-wrapper">
+    <table class="authors-table">
+
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Author Name</th>
+          <th *ngIf="canEdit()">Edit</th>
+          <th *ngIf="canDelete()">Delete</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let author of filteredAuthors">
+          <td>{{ getId(author) }}</td>
+          <td>{{ getName(author) }}</td>
+
+          <td *ngIf="canEdit()">
+            <button
+              class="edit-btn"
+              (click)="editAuthor(author)">
+              Edit
+            </button>
+          </td>
+
+          <td *ngIf="canDelete()">
+            <button
+              class="delete-btn"
+              (click)="deleteAuthor(author)">
+              Delete
+            </button>
+          </td>
+        </tr>
+      </tbody>
+
+    </table>
+  </div>
+
+</div>
+
+<div class="popup-overlay" *ngIf="showForm">
+
+  <div class="popup-box">
+
+    <div class="popup-header">
+      <h2>{{ isEdit ? 'Edit Author' : 'Add Author' }}</h2>
+
+      <button
+        class="close-popup-btn"
+        (click)="closeForm()">
+        X
+      </button>
+    </div>
+
+    <div class="form-group">
+      <label>Author Name</label>
+
+      <input
+        type="text"
+        [(ngModel)]="authorForm.name"
+        placeholder="Enter author name">
+    </div>
+
+    <div class="action-buttons">
+      <button
+        class="close-btn"
+        (click)="closeForm()">
+        Close
+      </button>
+
+      <button
+        class="save-btn"
+        (click)="saveAuthor()">
+        Save
+      </button>
+    </div>
+
+  </div>
+
+</div>

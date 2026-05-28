@@ -1,0 +1,125 @@
+<div class="books-page">
+
+  <div class="page-header">
+    <h1>Books</h1>
+
+    <button class="export-btn" (click)="exportExcel()">
+      Export Excel
+    </button>
+  </div>
+
+  <div class="search-section">
+    <input
+      type="text"
+      [(ngModel)]="searchText"
+      placeholder="Search books..."
+      class="search-input"
+    />
+  </div>
+
+  <div class="table-wrapper">
+    <table class="books-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Custom Barcode</th>
+          <th>Title</th>
+          <th>Author</th>
+          <th>Publisher</th>
+          <th>Language</th>
+          <th>Category</th>
+          <th>Total Count</th>
+          <th>Available Count</th>
+          <th>Created On Date</th>
+          <th>View</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let book of filteredBooks">
+          <td>{{ book.id || book.Id }}</td>
+          <td>{{ getCustomBarcode(book) }}</td>
+          <td>{{ getTitle(book) }}</td>
+          <td>{{ getAuthor(book) }}</td>
+          <td>{{ getPublisher(book) }}</td>
+          <td>{{ getLanguage(book) }}</td>
+          <td>{{ getCategory(book) }}</td>
+          <td>{{ getTotalCopies(book) }}</td>
+          <td>{{ getAvailableCopies(book) }}</td>
+          <td>{{ getCreatedDate(book) }}</td>
+
+          <td>
+            <button class="view-btn" (click)="viewBook(book)">
+              View
+            </button>
+          </td>
+        </tr>
+
+        <tr *ngIf="filteredBooks.length === 0">
+          <td colspan="11" class="no-data">
+            No books found
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<div class="modal-backdrop" *ngIf="showViewModal">
+  <div class="modal-box large-modal">
+
+    <div class="view-book-header">
+      <div class="book-header-left">
+        <h2 class="book-title">
+          {{ getTitle(selectedBook) }}
+        </h2>
+
+        <div class="book-meta">
+          <span><strong>ID:</strong> {{ selectedBook?.id || selectedBook?.Id }}</span>
+          <span><strong>Barcode:</strong> {{ getCustomBarcode(selectedBook) }}</span>
+          <span><strong>Author:</strong> {{ getAuthor(selectedBook) }}</span>
+          <span><strong>Publisher:</strong> {{ getPublisher(selectedBook) }}</span>
+          <span><strong>Language:</strong> {{ getLanguage(selectedBook) }}</span>
+          <span><strong>Category:</strong> {{ getCategory(selectedBook) }}</span>
+          <span><strong>Total Copies:</strong> {{ getTotalCopies(selectedBook) }}</span>
+          <span><strong>Available:</strong> {{ getAvailableCopies(selectedBook) }}</span>
+          <span><strong>Created Date:</strong> {{ getCreatedDate(selectedBook) }}</span>
+        </div>
+      </div>
+
+      <button class="close-btn" (click)="closeViewModal()">
+        X
+      </button>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="summary-table">
+        <thead>
+          <tr>
+            <th>Shelf</th>
+            <th>Rack</th>
+            <th>Total Count</th>
+            <th>Available Count</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let item of rackShelfSummary">
+            <td>{{ getSummaryShelf(item) }}</td>
+            <td>{{ getSummaryRack(item) }}</td>
+            <td>{{ getSummaryTotal(item) }}</td>
+            <td>{{ getSummaryAvailable(item) }}</td>
+          </tr>
+
+          <tr *ngIf="rackShelfSummary.length === 0">
+            <td colspan="4" class="no-data">
+              No rack/shelf data available
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>

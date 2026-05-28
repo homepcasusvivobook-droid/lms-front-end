@@ -1,0 +1,109 @@
+<div class="rack-page">
+
+  <div class="page-header">
+    <h1>Rack</h1>
+
+    <button
+      class="add-btn"
+      *ngIf="canAdd()"
+      (click)="addRack()">
+      + Add Rack
+    </button>
+  </div>
+
+  <div class="search-box">
+    <input
+      type="text"
+      placeholder="Search racks..."
+      [(ngModel)]="searchText">
+  </div>
+
+  <div class="table-wrapper">
+    <table class="rack-table">
+
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Rack Code</th>
+          <th>Rack Name</th>
+          <th>Shelf</th>
+          <th *ngIf="canEdit()">Edit</th>
+          <th *ngIf="canDelete()">Delete</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let rack of filteredRacks">
+          <td>{{ getId(rack) }}</td>
+          <td>{{ getRackCode(rack) }}</td>
+          <td>{{ getRackName(rack) }}</td>
+          <td>{{ getShelfName(rack) }}</td>
+
+          <td *ngIf="canEdit()">
+            <button class="edit-btn" (click)="editRack(rack)">
+              Edit
+            </button>
+          </td>
+
+          <td *ngIf="canDelete()">
+            <button class="delete-btn" (click)="deleteRack(rack)">
+              Delete
+            </button>
+          </td>
+        </tr>
+      </tbody>
+
+    </table>
+  </div>
+
+</div>
+
+<div class="popup-overlay" *ngIf="showForm">
+
+  <div class="popup-box">
+
+    <div class="popup-header">
+      <h2>{{ isEdit ? 'Edit Rack' : 'Add Rack' }}</h2>
+
+      <button class="close-popup-btn" (click)="closeForm()">
+        X
+      </button>
+    </div>
+
+    <div class="form-group">
+      <label>Rack Code</label>
+      <input
+        type="text"
+        [(ngModel)]="rackForm.rackCode"
+        placeholder="Enter rack code">
+    </div>
+
+    <div class="form-group">
+      <label>Rack Name</label>
+      <input
+        type="text"
+        [(ngModel)]="rackForm.rackName"
+        placeholder="Enter rack name">
+    </div>
+
+    <div class="form-group">
+      <label>Shelf</label>
+      <select [(ngModel)]="rackForm.shelfId">
+        <option [ngValue]="0">Select Shelf</option>
+
+        <option
+          *ngFor="let shelf of shelves"
+          [ngValue]="getId(shelf)">
+          {{ getShelfCode(shelf) }} - {{ getShelfNameFromShelf(shelf) }}
+        </option>
+      </select>
+    </div>
+
+    <div class="action-buttons">
+      <button class="close-btn" (click)="closeForm()">Close</button>
+      <button class="save-btn" (click)="saveRack()">Save</button>
+    </div>
+
+  </div>
+
+</div>

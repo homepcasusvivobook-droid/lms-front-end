@@ -1,0 +1,89 @@
+.masters-page {
+  padding: 35px;
+}
+
+.masters-page h1 {
+  margin-bottom: 30px;
+  font-size: 34px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.masters-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.master-card {
+  height: 145px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.04);
+  transition: 0.2s ease;
+}
+
+.master-card:hover {
+  transform: translateY(-3px);
+  border-color: #2563eb;
+  box-shadow: 0 12px 25px rgba(37, 99, 235, 0.12);
+}
+
+.master-card h3 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.book-card {
+  background: #f8fafc;
+}
+
+
+.masters-container {
+  padding: 30px;
+}
+
+.masters-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 30px;
+}
+
+.master-card {
+  height: 180px;
+  border: 1px solid #ddd;
+  border-radius: 14px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+  transition: 0.2s;
+  text-align: center;
+}
+
+.master-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+.master-card h3 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.master-card p {
+  margin-top: 10px;
+  font-size: 16px;
+  color: #555;
+}

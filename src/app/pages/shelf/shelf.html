@@ -1,0 +1,94 @@
+<div class="shelf-page">
+
+  <div class="page-header">
+    <h1>Shelf</h1>
+
+    <button
+      class="add-btn"
+      *ngIf="canAdd()"
+      (click)="addShelf()">
+      + Add Shelf
+    </button>
+  </div>
+
+  <div class="search-box">
+    <input
+      type="text"
+      placeholder="Search shelves..."
+      [(ngModel)]="searchText">
+  </div>
+
+  <div class="table-wrapper">
+    <table class="shelf-table">
+
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Shelf Code</th>
+          <th>Shelf Name</th>
+          <th *ngIf="canEdit()">Edit</th>
+          <th *ngIf="canDelete()">Delete</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let shelf of filteredShelves">
+          <td>{{ getId(shelf) }}</td>
+          <td>{{ getShelfCode(shelf) }}</td>
+          <td>{{ getShelfName(shelf) }}</td>
+
+          <td *ngIf="canEdit()">
+            <button class="edit-btn" (click)="editShelf(shelf)">
+              Edit
+            </button>
+          </td>
+
+          <td *ngIf="canDelete()">
+            <button class="delete-btn" (click)="deleteShelf(shelf)">
+              Delete
+            </button>
+          </td>
+        </tr>
+      </tbody>
+
+    </table>
+  </div>
+
+</div>
+
+<div class="popup-overlay" *ngIf="showForm">
+
+  <div class="popup-box">
+
+    <div class="popup-header">
+      <h2>{{ isEdit ? 'Edit Shelf' : 'Add Shelf' }}</h2>
+
+      <button class="close-popup-btn" (click)="closeForm()">
+        X
+      </button>
+    </div>
+
+    <div class="form-group">
+      <label>Shelf Code</label>
+      <input
+        type="text"
+        [(ngModel)]="shelfForm.shelfCode"
+        placeholder="Enter shelf code">
+    </div>
+
+    <div class="form-group">
+      <label>Shelf Name</label>
+      <input
+        type="text"
+        [(ngModel)]="shelfForm.shelfName"
+        placeholder="Enter shelf name">
+    </div>
+
+    <div class="action-buttons">
+      <button class="close-btn" (click)="closeForm()">Close</button>
+      <button class="save-btn" (click)="saveShelf()">Save</button>
+    </div>
+
+  </div>
+
+</div>

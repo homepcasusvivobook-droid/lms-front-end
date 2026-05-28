@@ -1,0 +1,107 @@
+.sidebar {
+  width: 150px;
+  height: 100vh;
+  background: #1e293b;
+  color: white;
+  position: fixed;
+  left: 0;
+  top: 0;
+  padding: 20px;
+  transition: width 0.3s ease;
+  overflow-x: hidden;
+}
+
+/* COLLAPSED SIDEBAR */
+
+.sidebar.collapsed {
+  width: 45px;
+  min-width: 45px;
+  padding: 20px 8px;
+}
+
+.sidebar.collapsed .collapse-btn {
+  right: 5px;
+}
+
+/* COLLAPSE BUTTON */
+
+.collapse-btn {
+  position: absolute;
+  top: 12px;
+  right: 8px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: #2563eb;
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 99999;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+/* SIDEBAR CONTENT */
+
+.sidebar-content {
+  transition: opacity 0.2s ease;
+}
+
+.sidebar h2 {
+  margin-bottom: 30px;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar ul li {
+  margin-bottom: 15px;
+}
+
+.sidebar ul li a {
+  display: block;
+  color: white;
+  text-decoration: none;
+  font-size: 16px;
+}
+
+.sidebar ul li a:hover {
+  color: #38bdf8;
+}
+
+.logout-btn {
+  margin-top: 30px;
+  width: 100%;
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.logout-btn:hover {
+  background: #b91c1c;
+}
+
+.user-info {
+  background: #334155;
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+}
+
+.user-info strong {
+  display: block;
+  font-size: 14px;
+}
+
+.user-info small {
+  display: block;
+  font-size: 12px;
+  color: #cbd5e1;
+}

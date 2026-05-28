@@ -1,0 +1,87 @@
+<div class="languages-page">
+
+  <div class="page-header">
+    <h1>Languages</h1>
+
+    <button class="add-btn" *ngIf="canAdd()" (click)="addLanguage()">
+      + Add Language
+    </button>
+  </div>
+
+  <div class="search-box">
+    <input
+      type="text"
+      placeholder="Search languages..."
+      [(ngModel)]="searchText">
+  </div>
+
+  <div class="table-wrapper">
+    <table class="languages-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Language Name</th>
+          <th>Language Prefix</th>
+          <th *ngIf="canEdit()">Edit</th>
+          <th *ngIf="canDelete()">Delete</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let language of filteredLanguages">
+          <td>{{ getId(language) }}</td>
+          <td>{{ getLanguageName(language) }}</td>
+          <td>{{ getLanguagePrefix(language) }}</td>
+
+          <td *ngIf="canEdit()">
+            <button class="edit-btn" (click)="editLanguage(language)">
+              Edit
+            </button>
+          </td>
+
+          <td *ngIf="canDelete()">
+            <button class="delete-btn" (click)="deleteLanguage(language)">
+              Delete
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<div class="popup-overlay" *ngIf="showForm">
+  <div class="popup-box">
+
+    <div class="popup-header">
+      <h2>{{ isEdit ? 'Edit Language' : 'Add Language' }}</h2>
+
+      <button class="close-popup-btn" (click)="closeForm()">
+        X
+      </button>
+    </div>
+
+    <div class="form-group">
+      <label>Language Name</label>
+      <input
+        type="text"
+        [(ngModel)]="languageForm.languageName"
+        placeholder="Enter language name">
+    </div>
+
+    <div class="form-group">
+      <label>Language Prefix</label>
+      <input
+        type="text"
+        [(ngModel)]="languageForm.languagePrefix"
+        placeholder="Enter language prefix">
+    </div>
+
+    <div class="action-buttons">
+      <button class="close-btn" (click)="closeForm()">Close</button>
+      <button class="save-btn" (click)="saveLanguage()">Save</button>
+    </div>
+
+  </div>
+</div>

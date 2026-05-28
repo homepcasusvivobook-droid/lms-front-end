@@ -1,0 +1,65 @@
+<div class="masters-page">
+
+  <h1>Masters</h1>
+
+  <div class="masters-grid">
+
+    <div
+      class="master-card book-card"
+      *ngIf="canShowMasterTile()"
+      routerLink="/book-master">
+      <h3>Books</h3>
+    </div>
+
+    <div
+      class="master-card"
+      *ngIf="canShowMasterTile()"
+      routerLink="/authors">
+      <h3>Authors</h3>
+    </div>
+
+    <div
+      class="master-card"
+      *ngIf="canShowMasterTile()"
+      routerLink="/publishers">
+      <h3>Publishers</h3>
+    </div>
+
+    <div
+      class="master-card"
+      *ngIf="canShowMasterTile()"
+      routerLink="/languages">
+      <h3>Languages</h3>
+    </div>
+
+    <div
+      class="master-card"
+      *ngIf="canShowMasterTile()"
+      routerLink="/categories">
+      <h3>Categories</h3>
+    </div>
+
+    <div
+      class="master-card"
+      *ngIf="canShowMasterTile()"
+      routerLink="/shelf">
+      <h3>Shelf</h3>
+    </div>
+
+    <div
+      class="master-card"
+      *ngIf="canShowMasterTile()"
+      routerLink="/rack">
+      <h3>Rack</h3>
+    </div>
+
+    <div
+      class="master-card"
+      *ngIf="canShowMasterTile()"
+      routerLink="/member-types">
+      <h3>Member Types</h3>
+    </div>
+
+  </div>
+
+</div>

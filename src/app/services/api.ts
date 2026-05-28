@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -8,8 +9,9 @@ import { Observable } from 'rxjs';
 export class Api {
 
   // baseUrl = 'https://localhost:7126/api';
-  baseUrl = 'https://lmsapi20260528173411-afckbkftd0bsfzee.westeurope-01.azurewebsites.net/api';
-  
+  //baseUrl = 'https://lmsapi20260528173411-afckbkftd0bsfzee.westeurope-01.azurewebsites.net/api';
+  baseUrl = environment.apiUrl;
+
   constructor(private http: HttpClient) {}
 
   // =========================

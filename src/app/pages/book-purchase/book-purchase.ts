@@ -34,14 +34,19 @@ export class BookPurchase implements OnInit {
   selectedPurchase: any = null;
 
   purchaseForm: any = {
-    id: 0,
-    invoiceNo: '',
-    storeName: '',
-    purchaseDate: '',
-    totalCost: 0,
-    remarks: '',
-    details: []
-  };
+  id: 0,
+  purchaseType: 'Purchase',
+  invoiceNo: '',
+  storeName: '',
+  sponsorName: '',
+  purchaseDate: '',
+  currency: 'AED',
+  conversionRate: 1,
+  totalCost: 0,
+  totalCostAed: 0,
+  remarks: '',
+  details: []
+};
 
   constructor(private api: Api) {}
 
@@ -157,45 +162,74 @@ export class BookPurchase implements OnInit {
 
   openAddModal(): void {
     this.purchaseForm = {
-      id: 0,
-      invoiceNo: '',
-      storeName: '',
-      purchaseDate: '',
-      totalCost: 0,
-      remarks: '',
-      details: []
-    };
+       id: 0,
+       purchaseType: 'Purchase',
+       invoiceNo: '',
+       storeName: '',
+       sponsorName: '',
+       purchaseDate: '',
+       currency: 'AED',
+       conversionRate: 1,
+       totalCost: 0,
+       totalCostAed: 0,
+       remarks: '',
+       details: []
+      };
 
     this.addRow();
     this.showAddModal = true;
   }
 
+  calculateAed(): void {
+  const total = Number(this.purchaseForm.totalCost) || 0;
+  const rate = Number(this.purchaseForm.conversionRate) || 1;
+
+  this.purchaseForm.totalCostAed =
+    this.purchaseForm.currency === 'AED'
+      ? total
+      : total / rate;
+}
+
   savePurchase(): void {
 
-    if (!this.purchaseForm.invoiceNo?.trim()) {
-      alert('Invoice No is required');
-    return;
+    if (!this.purchaseForm.purchaseDate) {
+      alert('Purchase Date is required');
+      return;
     }
-    if (!this.purchaseForm.storeName?.trim()) {
-      alert('Store Name is required');
+
+    if (this.purchaseForm.purchaseType === 'Purchase') {
+    if (!this.purchaseForm.invoiceNo?.trim()) {
+          alert('Invoice No is required');
+          return;
+        }
+
+  if (!this.purchaseForm.storeName?.trim()) {
+    alert('Store Name is required');
     return;
+  }
 }
     const payload = {
-      invoiceNo: this.purchaseForm.invoiceNo,
-      storeName: this.purchaseForm.storeName,
-      purchaseDate: this.purchaseForm.purchaseDate,
-      totalCost: Number(this.purchaseForm.totalCost),
-      remarks: this.purchaseForm.remarks,
+  invoiceNo: this.purchaseForm.invoiceNo,
+  storeName: this.purchaseForm.storeName,
+  purchaseDate: this.purchaseForm.purchaseDate,
+  totalCost: Number(this.purchaseForm.totalCost),
+  remarks: this.purchaseForm.remarks,
 
-      createdBy: this.userName,
+  purchaseType: this.purchaseForm.purchaseType,
+  currency: this.purchaseForm.currency,
+  conversionRate: Number(this.purchaseForm.conversionRate),
+  totalCostAed: Number(this.purchaseForm.totalCostAed),
+  sponsorName: this.purchaseForm.sponsorName,
 
-      details: this.purchaseForm.details.map((x: any) => ({
-      isbn: x.isbn,
-      shelfId: Number(x.shelfId),
-      rackId: Number(x.rackId),
-      noOfCopies: Number(x.noOfCopies),
-      cost: Number(x.cost),
-      remarks: x.remarks
+  createdBy: this.userName,
+
+  details: this.purchaseForm.details.map((x: any) => ({
+    isbn: x.isbn,
+    shelfId: Number(x.shelfId),
+    rackId: Number(x.rackId),
+    noOfCopies: Number(x.noOfCopies),
+    cost: Number(x.cost),
+    remarks: x.remarks
   }))
 };
 
@@ -218,28 +252,49 @@ export class BookPurchase implements OnInit {
         const details = res.details?.$values || res.details || res.Details?.$values || res.Details || [];
 
         this.purchaseForm = {
-          id: res.id || res.Id,
-          invoiceNo: res.invoiceNo || res.InvoiceNo,
-          storeName: res.storeName || res.StoreName,
-          purchaseDate: this.formatDateForInput(res.purchaseDate || res.PurchaseDate),
-          totalCost: res.totalCost || res.TotalCost,
-          remarks: res.remarks || res.Remarks,
-          details: details.map((d: any) => ({
-            id: d.id || d.Id || 0,
-            isbn: d.isbn || d.ISBN || '',
-            title: d.title || d.Title || '',
-            author: d.author || d.Author || '',
-            publisher: d.publisher || d.Publisher || '',
-            language: d.language || d.Language || '',
-            category: d.category || d.Category || d.categoryName || d.CategoryName || '',
-            customBarcode: d.customBarcode || d.CustomBarcode || '',
-            shelfId: d.shelfId || d.ShelfId || '',
-            rackId: d.rackId || d.RackId || '',
-            noOfCopies: d.noOfCopies || d.NoOfCopies || 1,
-            cost: d.cost || d.Cost || 0,
-            remarks: d.remarks || d.Remarks || ''
-          }))
-        };
+  id: res.id || res.Id,
+
+  purchaseType: res.purchaseType || res.PurchaseType || 'Purchase',
+
+  invoiceNo: res.invoiceNo || res.InvoiceNo,
+
+  storeName: res.storeName || res.StoreName,
+
+  sponsorName: res.sponsorName || res.SponsorName || '',
+
+  purchaseDate: this.formatDateForInput(
+      res.purchaseDate || res.PurchaseDate
+  ),
+
+  currency: res.currency || res.Currency || 'AED',
+
+  conversionRate:
+      res.conversionRate || res.ConversionRate || 1,
+
+  totalCost:
+      res.totalCost || res.TotalCost || 0,
+
+  totalCostAed:
+      res.totalCostAed || res.TotalCostAed || 0,
+
+  remarks: res.remarks || res.Remarks,
+
+  details: details.map((d:any)=>({
+      id: d.id || d.Id || 0,
+      isbn: d.isbn || d.ISBN || '',
+      title: d.title || d.Title || '',
+      author: d.author || d.Author || '',
+      publisher: d.publisher || d.Publisher || '',
+      language: d.language || d.Language || '',
+      category: d.category || d.Category || '',
+      customBarcode: d.customBarcode || d.CustomBarcode || '',
+      shelfId: d.shelfId || d.ShelfId || '',
+      rackId: d.rackId || d.RackId || '',
+      noOfCopies: d.noOfCopies || d.NoOfCopies || 1,
+      cost: d.cost || d.Cost || 0,
+      remarks: d.remarks || d.Remarks || ''
+  }))
+};
 
         this.showEditModal = true;
       },
@@ -264,20 +319,27 @@ export class BookPurchase implements OnInit {
   }
 
     const payload = {
-      id: this.purchaseForm.id,
-      invoiceNo: this.purchaseForm.invoiceNo,
-      storeName: this.purchaseForm.storeName,
-      purchaseDate: this.purchaseForm.purchaseDate,
-      totalCost: Number(this.purchaseForm.totalCost),
-      remarks: this.purchaseForm.remarks,
+  id: this.purchaseForm.id,
 
-      editedBy: this.userName,
+  invoiceNo: this.purchaseForm.invoiceNo,
+  storeName: this.purchaseForm.storeName,
+  purchaseDate: this.purchaseForm.purchaseDate,
+  totalCost: Number(this.purchaseForm.totalCost),
+  remarks: this.purchaseForm.remarks,
 
-     details: this.purchaseForm.details.map((x: any) => ({
-     id: x.id || 0,
-     isbn: x.isbn,
-     shelfId: Number(x.shelfId),
-     rackId: Number(x.rackId),
+  purchaseType: this.purchaseForm.purchaseType,
+  currency: this.purchaseForm.currency,
+  conversionRate: Number(this.purchaseForm.conversionRate),
+  totalCostAed: Number(this.purchaseForm.totalCostAed),
+  sponsorName: this.purchaseForm.sponsorName,
+
+  editedBy: this.userName,
+
+  details: this.purchaseForm.details.map((x: any) => ({
+      id: x.id || 0,
+      isbn: x.isbn,
+      shelfId: Number(x.shelfId),
+      rackId: Number(x.rackId),
       noOfCopies: Number(x.noOfCopies),
       cost: Number(x.cost),
       remarks: x.remarks
@@ -374,6 +436,7 @@ export class BookPurchase implements OnInit {
     });
 
     this.purchaseForm.totalCost = total;
+    this.calculateAed();
   }
 
   closeModal(): void {

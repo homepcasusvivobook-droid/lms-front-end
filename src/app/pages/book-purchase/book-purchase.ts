@@ -171,6 +171,15 @@ export class BookPurchase implements OnInit {
   }
 
   savePurchase(): void {
+
+    if (!this.purchaseForm.invoiceNo?.trim()) {
+      alert('Invoice No is required');
+    return;
+    }
+    if (!this.purchaseForm.storeName?.trim()) {
+      alert('Store Name is required');
+    return;
+}
     const payload = {
       invoiceNo: this.purchaseForm.invoiceNo,
       storeName: this.purchaseForm.storeName,
@@ -182,7 +191,7 @@ export class BookPurchase implements OnInit {
 
       details: this.purchaseForm.details.map((x: any) => ({
       isbn: x.isbn,
-       shelfId: Number(x.shelfId),
+      shelfId: Number(x.shelfId),
       rackId: Number(x.rackId),
       noOfCopies: Number(x.noOfCopies),
       cost: Number(x.cost),
@@ -242,6 +251,18 @@ export class BookPurchase implements OnInit {
   }
 
   updatePurchase(): void {
+    
+    
+  if (!this.purchaseForm.invoiceNo?.trim()) {
+    alert('Invoice No is required');
+    return;
+  }
+
+  if (!this.purchaseForm.storeName?.trim()) {
+    alert('Store Name is required');
+    return;
+  }
+
     const payload = {
       id: this.purchaseForm.id,
       invoiceNo: this.purchaseForm.invoiceNo,

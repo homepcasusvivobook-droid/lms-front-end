@@ -120,12 +120,18 @@
 
       <div class="form-group">
         <label>Invoice No</label>
-        <input type="text" [(ngModel)]="purchaseForm.invoiceNo">
+        <input
+          type="text"
+          [(ngModel)]="purchaseForm.invoiceNo"
+          (input)="purchaseForm.invoiceNo = purchaseForm.invoiceNo.trimStart()">
       </div>
 
       <div class="form-group">
         <label>Store Name</label>
-        <input type="text" [(ngModel)]="purchaseForm.storeName">
+        <input
+          type="text"
+          [(ngModel)]="purchaseForm.storeName"
+          (input)="purchaseForm.storeName = purchaseForm.storeName.trimStart()">
       </div>
 
       <div class="form-group">

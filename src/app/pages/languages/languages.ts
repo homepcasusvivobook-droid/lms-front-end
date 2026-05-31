@@ -66,34 +66,31 @@ export class Languages implements OnInit {
   }
 
   loadLanguages(): void {
-  this.api.getLanguages().subscribe({
-    next: (data: any) => {
-      this.languages = Array.isArray(data)
-        ? data
-        : (data?.$values || []);
-
-      this.languages.sort((a: any, b: any) => {
-        const idA = Number(a.id || a.Id || 0);
-        const idB = Number(b.id || b.Id || 0);
-
-        return idA - idB;
-      });
-    },
-    error: (err: any) => {
-      console.log(err);
-      alert('Failed to load languages');
-    }
-  });
-}
+    this.api.getLanguages().subscribe({
+      next: (data: any) => {
+        this.languages = Array.isArray(data)
+          ? data
+          : (data?.$values || []);
+      },
+      error: (err: any) => {
+        console.log(err);
+        alert('Failed to load languages');
+      }
+    });
+  }
 
   get filteredLanguages() {
-    const search = this.searchText.toLowerCase();
+    const search = this.searchText.toLowerCase().trim();
 
-    return this.languages.filter((x: any) =>
-      this.getId(x).toString().includes(search) ||
-      this.getLanguageName(x).toLowerCase().includes(search) ||
-      this.getLanguagePrefix(x).toLowerCase().includes(search)
-    );
+    return this.languages
+      .filter((x: any) =>
+        this.getId(x).toString().includes(search) ||
+        this.getLanguageName(x).toLowerCase().includes(search) ||
+        this.getLanguagePrefix(x).toLowerCase().includes(search)
+      )
+      .sort((a: any, b: any) =>
+        Number(this.getId(b)) - Number(this.getId(a))
+      );
   }
 
   addLanguage(): void {

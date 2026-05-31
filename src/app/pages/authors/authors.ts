@@ -73,12 +73,16 @@ export class Authors implements OnInit {
   }
 
   get filteredAuthors() {
-    const search = this.searchText.toLowerCase();
+  const search = this.searchText.toLowerCase().trim();
 
-    return this.authors.filter((x: any) =>
+  return this.authors
+    .filter((x: any) =>
       this.getName(x).toLowerCase().includes(search)
+    )
+    .sort((a: any, b: any) =>
+      Number(this.getId(b)) - Number(this.getId(a))
     );
-  }
+}
 
   addAuthor() {
     this.isEdit = false;

@@ -76,7 +76,7 @@ export class Shelf implements OnInit {
         const idA = Number(a.id || a.Id || 0);
         const idB = Number(b.id || b.Id || 0);
 
-        return idA - idB;
+        return idB - idA;
       });
     },
     error: (err: any) => {
@@ -85,7 +85,7 @@ export class Shelf implements OnInit {
     }
   });
 }
-
+    
   get filteredShelves() {
     const search = this.searchText.toLowerCase();
 

@@ -1,0 +1,182 @@
+<div class="master-page">
+
+  <div class="page-header">
+    <h1>Currency Master</h1>
+
+    <button
+      class="add-btn"
+      *ngIf="canAdd()"
+      (click)="openAddModal()">
+      + Add Currency
+    </button>
+  </div>
+
+  <!-- Search -->
+
+  <div class="search-section">
+    <input
+      type="text"
+      [(ngModel)]="searchText"
+      (input)="onSearch()"
+      placeholder="Search Currency Code / Currency Name">
+  </div>
+
+  <!-- Grid -->
+
+  <div class="table-wrapper">
+    <table class="master-table">
+
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Currency Code</th>
+          <th>Currency Name</th>
+          <th>Default</th>
+          <th>Status</th>
+
+          <th *ngIf="canEdit()">Edit</th>
+          <th *ngIf="canDelete()">Delete</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        <tr *ngFor="let item of filteredCurrencies">
+
+          <td>{{ item.id }}</td>
+
+          <td>{{ item.currencyCode }}</td>
+
+          <td>{{ item.currencyName }}</td>
+
+          <td>
+            <span *ngIf="item.isDefault">✔</span>
+          </td>
+
+          <td>
+            {{ item.isActive ? 'Active' : 'Inactive' }}
+          </td>
+
+          <td *ngIf="canEdit()">
+            <button
+              class="edit-btn"
+              (click)="editCurrency(item)">
+              Edit
+            </button>
+          </td>
+
+          <td *ngIf="canDelete()">
+            <button
+              class="delete-btn"
+              (click)="deleteCurrency(item.id)">
+              Delete
+            </button>
+          </td>
+
+        </tr>
+
+        <tr *ngIf="filteredCurrencies.length === 0">
+          <td colspan="7" class="no-data">
+            No currencies found
+          </td>
+        </tr>
+
+      </tbody>
+
+    </table>
+  </div>
+
+  <!-- Modal -->
+
+  <div class="modal-backdrop" *ngIf="showModal">
+
+    <div class="modal-box">
+
+      <div class="modal-header">
+        <h2>
+          {{ isEditMode ? 'Edit Currency' : 'Add Currency' }}
+        </h2>
+
+        <button
+          class="close-btn"
+          (click)="closeModal()">
+          X
+        </button>
+      </div>
+
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label>Currency Code</label>
+
+          <input
+            type="text"
+            maxlength="3"
+            [(ngModel)]="currencyForm.currencyCode"
+            placeholder="AED">
+        </div>
+
+        <div class="form-group">
+          <label>Currency Name</label>
+
+          <input
+            type="text"
+            [(ngModel)]="currencyForm.currencyName"
+            placeholder="UAE Dirham">
+        </div>
+
+        <div class="form-group checkbox-group">
+          <label>
+
+            <input
+              type="checkbox"
+              [(ngModel)]="currencyForm.isDefault">
+
+            Default Currency
+
+          </label>
+        </div>
+
+        <div class="form-group checkbox-group">
+          <label>
+
+            <input
+              type="checkbox"
+              [(ngModel)]="currencyForm.isActive">
+
+            Active
+
+          </label>
+        </div>
+
+      </div>
+
+      <div class="footer-buttons">
+
+        <button
+          class="cancel-btn"
+          (click)="closeModal()">
+          Cancel
+        </button>
+
+        <button
+          class="save-btn"
+          *ngIf="!isEditMode"
+          (click)="saveCurrency()">
+          Save
+        </button>
+
+        <button
+          class="save-btn"
+          *ngIf="isEditMode"
+          (click)="updateCurrency()">
+          Update
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

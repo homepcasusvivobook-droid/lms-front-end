@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -15,10 +15,18 @@ import { environment } from '../../../environments/environment';
 })
 export class BookIssue implements OnInit {
 
+  @ViewChild('topScroll') topScroll!: ElementRef<HTMLDivElement>;
+  @ViewChild('tableScroll') tableScroll!: ElementRef<HTMLDivElement>;
+
   private baseUrl = environment.apiUrl;
 
   transactions: any[] = [];
   filteredTransactions: any[] = [];
+  pagedTransactions: any[] = [];
+
+  currentPage = 1;
+  pageSize = 20;
+  scrollContentWidth = 2400;
 
   memberSuggestions: any[] = [];
   bookSuggestions: any[] = [];
@@ -29,9 +37,12 @@ export class BookIssue implements OnInit {
   selectedCopyId: any = null;
   selectedTransaction: any = null;
 
-  selectedMemberMaxBooks: number = 0;
-  selectedMemberPendingBooks: number = 0;
-  selectedMemberRemainingBooks: number = 0;
+  issueMode: 'new' | 'edit' | 'reissue' = 'new';
+  originalTransactionStatus = '';
+
+  selectedMemberMaxBooks = 0;
+  selectedMemberPendingBooks = 0;
+  selectedMemberRemainingBooks = 0;
 
   issueRows: any[] = [];
 
@@ -48,8 +59,8 @@ export class BookIssue implements OnInit {
   showIssueModal = false;
   showReturnModal = false;
 
-  userType: string = '';
-  userName: string = '';
+  userType = '';
+  userName = '';
 
   canExportExcel = false;
   canBookIssue = false;
@@ -59,11 +70,11 @@ export class BookIssue implements OnInit {
   canDelete = false;
 
   returnModel: any = {
-  returnDate: new Date().toISOString().substring(0, 10),
-  fineAmount: 0,
-  remarks: '',
-  createdBy: ''
-};
+    returnDate: new Date().toISOString().substring(0, 10),
+    fineAmount: 0,
+    remarks: '',
+    createdBy: ''
+  };
 
   constructor(
     private api: Api,
@@ -71,39 +82,27 @@ export class BookIssue implements OnInit {
   ) {}
 
   ngOnInit(): void {
-  this.userType = localStorage.getItem('userType') || '';
-  this.userName = localStorage.getItem('userName') || this.userType || 'Admin';
+    this.userType = localStorage.getItem('userType') || '';
+    this.userName = localStorage.getItem('userName') || this.userType || 'Admin';
 
-  this.canExportExcel = [
-    'Admin',
-    'Secretary',
-    'Treasurer',
-    'Internal Auditor',
-    'Librarian',
-    'Assistant Librarian'
-  ].includes(this.userType);
+    this.canExportExcel = [
+      'Admin',
+      'Secretary',
+      'Treasurer',
+      'Internal Auditor',
+      'Librarian',
+      'Assistant Librarian'
+    ].includes(this.userType);
 
-  this.canBookIssue = [
-    'Admin',
-    'Librarian',
-    'Assistant Librarian'
-  ].includes(this.userType);
+    this.canBookIssue = ['Admin', 'Librarian', 'Assistant Librarian'].includes(this.userType);
+    this.canReturn = this.canBookIssue;
+    this.canReIssue = this.canBookIssue;
 
-  this.canReturn = this.canBookIssue;
-  this.canReIssue = this.canBookIssue;
+    this.canEdit = ['Admin', 'Secretary'].includes(this.userType);
+    this.canDelete = ['Admin', 'Secretary'].includes(this.userType);
 
-  this.canEdit = [
-    'Admin',
-    'Secretary'
-  ].includes(this.userType);
-
-  this.canDelete = [
-    'Admin',
-    'Secretary'
-  ].includes(this.userType);
-
-  this.loadTransactions();
-}
+    this.loadTransactions();
+  }
 
   todayString(): string {
     return new Date().toISOString().substring(0, 10);
@@ -117,31 +116,15 @@ export class BookIssue implements OnInit {
 
   loadTransactions(): void {
     this.http.get(
-  `${this.baseUrl}/LibraryTransactions?fromDate=${this.fromDate}&toDate=${this.toDate}&dateType=${this.dateType}&status=${this.statusFilter}`).subscribe({
+      `${this.baseUrl}/LibraryTransactions?fromDate=${this.fromDate}&toDate=${this.toDate}&dateType=${this.dateType}&status=${this.statusFilter}`
+    ).subscribe({
       next: (res: any) => {
-
-          console.log(res);
-
-        this.transactions = res || [];
+        this.transactions = Array.isArray(res) ? res : (res?.$values || []);
         this.applyFilters();
       },
       error: (err: any) => {
-        console.error(err);
         console.error('Load transaction error:', err);
-
-let msg = 'Failed to load transactions';
-
-if (typeof err.error === 'string') {
-  msg = err.error;
-} else if (err.error?.message) {
-  msg = err.error.message;
-} else if (err.error?.title) {
-  msg = err.error.title;
-} else if (err.message) {
-  msg = err.message;
-}
-
-alert(msg);
+        alert(this.getErrorMessage(err, 'Failed to load transactions'));
       }
     });
   }
@@ -165,17 +148,17 @@ alert(msg);
     }
 
     if (this.statusFilter === 'Pending') {
-      data = data.filter(x => x.status === 'Issued');
+      data = data.filter(x => (x.status || '').toLowerCase() === 'issued');
     }
 
     if (this.statusFilter === 'Returned') {
-      data = data.filter(x => x.status === 'Returned');
+      data = data.filter(x => (x.status || '').toLowerCase() === 'returned');
     }
 
     if (this.statusFilter === 'Overdue') {
       const today = new Date();
       data = data.filter(x =>
-        x.status === 'Issued' &&
+        (x.status || '').toLowerCase() === 'issued' &&
         x.dueDate &&
         new Date(x.dueDate) < today
       );
@@ -195,7 +178,43 @@ alert(msg);
       });
     }
 
+    data.sort((a: any, b: any) =>
+      Number(b.id || b.Id || 0) - Number(a.id || a.Id || 0)
+    );
+
     this.filteredTransactions = data;
+    this.currentPage = 1;
+    this.updatePagedTransactions();
+  }
+
+  updatePagedTransactions(): void {
+    const start = (this.currentPage - 1) * this.pageSize;
+    const end = start + this.pageSize;
+    this.pagedTransactions = this.filteredTransactions.slice(start, end);
+  }
+
+  get totalPages(): number {
+    return Math.ceil(this.filteredTransactions.length / this.pageSize) || 1;
+  }
+
+  get totalPagesArray(): number[] {
+    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  }
+
+  goToPage(page: number): void {
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage = page;
+    this.updatePagedTransactions();
+  }
+
+  syncScroll(source: 'top' | 'table'): void {
+    if (!this.topScroll || !this.tableScroll) return;
+
+    if (source === 'top') {
+      this.tableScroll.nativeElement.scrollLeft = this.topScroll.nativeElement.scrollLeft;
+    } else {
+      this.topScroll.nativeElement.scrollLeft = this.tableScroll.nativeElement.scrollLeft;
+    }
   }
 
   getDateByType(x: any): any {
@@ -204,11 +223,132 @@ alert(msg);
     return x.issueDate;
   }
 
+  getErrorMessage(err: any, defaultMessage: string): string {
+    if (typeof err?.error === 'string') return err.error;
+    if (err?.error?.message) return err.error.message;
+    if (err?.error?.title) return err.error.title;
+    if (err?.message) return err.message;
+    return defaultMessage;
+  }
+
+  getIssueModalTitle(): string {
+    if (this.issueMode === 'edit') return 'Edit Book Issue';
+    if (this.issueMode === 'reissue') return 'Re-Issue Book';
+    return 'New Book Issue';
+  }
+
+  getSaveButtonText(): string {
+    if (this.issueMode === 'edit') return 'Update Issue';
+    if (this.issueMode === 'reissue') return 'Save Re-Issue';
+    return 'Book Issue';
+  }
+
+  isReturnedTransaction(item: any): boolean {
+    return (item.status || '').toLowerCase() === 'returned';
+  }
+
+  getDisplayStatus(item: any): string {
+    const dbStatus = (item.status || '').toLowerCase();
+    const remarks = (item.remarks || '').toLowerCase();
+
+    if (dbStatus === 'returned') {
+      return 'Returned';
+    }
+
+    const isReIssued = remarks.includes('re-issued') || remarks.includes('reissued');
+    const isEdited = remarks.includes('edited');
+
+    if (isReIssued && isEdited) return 'Re-Issued - Edited';
+    if (isReIssued) return 'Re-Issued';
+    if (isEdited) return 'Issued - Edited';
+
+    return 'Issued';
+  }
+
+  getStatusClass(item: any): string {
+    return this.getDisplayStatus(item).toLowerCase().replace(/\s+/g, '-');
+  }
+
+  canEditTransaction(item: any): boolean {
+    return !this.isReturnedTransaction(item);
+  }
+
+  canReIssueTransaction(item: any): boolean {
+    return !this.isReturnedTransaction(item);
+  }
+
+  isNewMode(): boolean {
+    return this.issueMode === 'new';
+  }
+
+  isEditMode(): boolean {
+    return this.issueMode === 'edit';
+  }
+
+  isReIssueMode(): boolean {
+    return this.issueMode === 'reissue';
+  }
+
+  canShowAddCopyButton(): boolean {
+    return this.issueMode === 'new';
+  }
+
+  canShowDeleteIssueRow(): boolean {
+    return this.issueMode === 'new';
+  }
+
+  canEditMemberField(): boolean {
+    return this.issueMode === 'new' || this.issueMode === 'edit';
+  }
+
+  canEditBookField(): boolean {
+    return this.issueMode === 'new' || this.issueMode === 'edit';
+  }
+
+  canEditCopySelection(): boolean {
+    return this.issueMode === 'new' || this.issueMode === 'edit';
+  }
+
+  getIssueModeCredit(): number {
+    const status = (this.originalTransactionStatus || '').toLowerCase();
+
+    if ((this.issueMode === 'edit' || this.issueMode === 'reissue') && status === 'issued') {
+      return 1;
+    }
+
+    return 0;
+  }
+
+  getPendingBooksDisplay(): number {
+    const pending = Number(this.selectedMemberPendingBooks || 0);
+    return Math.max(0, pending - this.getIssueModeCredit());
+  }
+
+  getAllowedRowsInModal(): number {
+    const max = Number(this.selectedMemberMaxBooks || 0);
+    const pendingAfterCredit = this.getPendingBooksDisplay();
+    return Math.max(0, max - pendingAfterCredit);
+  }
+
+  getRemainingBooksDisplay(): number {
+    return Math.max(0, this.getAllowedRowsInModal() - this.issueRows.length);
+  }
+
+  canAddMoreBookRows(): boolean {
+    return this.getRemainingBooksDisplay() > 0;
+  }
+
+  canSaveIssue(): boolean {
+    if (!this.selectedMember) return false;
+    if (this.issueRows.length === 0) return false;
+    return this.getAllowedRowsInModal() >= this.issueRows.length;
+  }
+
   openIssueModal(): void {
     this.showIssueModal = true;
-
+    this.issueMode = 'new';
+    this.originalTransactionStatus = '';
     this.selectedTransaction = null;
-
     this.selectedMember = null;
 
     this.selectedMemberMaxBooks = 0;
@@ -233,6 +373,8 @@ alert(msg);
   }
 
   searchMembers(): void {
+    if (!this.canEditMemberField()) return;
+
     if (!this.memberSearch.trim()) {
       this.memberSuggestions = [];
       return;
@@ -242,114 +384,129 @@ alert(msg);
       .get(`${this.baseUrl}/LibraryTransactions/search-members?term=${encodeURIComponent(this.memberSearch)}`)
       .subscribe({
         next: (res: any) => {
-          this.memberSuggestions = res || [];
+          this.memberSuggestions = Array.isArray(res) ? res : (res?.$values || []);
         },
-        error: (err: any) => {
-          console.error(err);
-        }
+        error: (err: any) => console.error(err)
       });
   }
 
   selectMember(member: any): void {
-  this.selectedMember = member;
+    if (!this.canEditMemberField()) return;
 
-  this.selectedMemberMaxBooks = Number(member.maxBooksAllowed || 0);
-  this.selectedMemberPendingBooks = Number(member.pendingBooksCount || 0);
-  this.selectedMemberRemainingBooks = Number(member.remainingBooksAllowed || 0);
+    this.selectedMember = member;
+    this.selectedMemberMaxBooks = Number(member.maxBooksAllowed || 0);
+    this.selectedMemberPendingBooks = Number(member.pendingBooksCount || 0);
+    this.selectedMemberRemainingBooks = Number(member.remainingBooksAllowed || 0);
 
-  this.memberSearch = `${member.memberName} - ${member.cardexNo}`;
-  this.memberSuggestions = [];
-}
-
-  searchBooks(): void {
-  if (!this.bookSearch.trim()) {
-    this.bookSuggestions = [];
-    this.availableCopiesForBook = [];
-    this.selectedBook = null;
-    this.selectedCopyId = null;
-    return;
+    this.memberSearch = `${member.memberName} - ${member.cardexNo}`;
+    this.memberSuggestions = [];
   }
 
-  const term = this.bookSearch.trim();
+  loadSelectedMemberLimitInfo(term: string): void {
+    if (!term) return;
 
-  this.http
-    .get(`${this.baseUrl}/LibraryTransactions/search-books?term=${encodeURIComponent(term)}`)
-    .subscribe({
-      next: (res: any) => {
-        const list: any[] = res || [];
+    this.http
+      .get(`${this.baseUrl}/LibraryTransactions/search-members?term=${encodeURIComponent(term)}`)
+      .subscribe({
+        next: (res: any) => {
+          const list: any[] = Array.isArray(res) ? res : (res?.$values || []);
+          const member = list[0];
 
-        if (list.length === 0 && term.includes('-C')) {
-          alert('No available book copy found for barcode: ' + term);
+          if (!member) return;
+
+          this.selectedMember = {
+            ...this.selectedMember,
+            ...member
+          };
+
+          this.selectedMemberMaxBooks = Number(member.maxBooksAllowed || 0);
+          this.selectedMemberPendingBooks = Number(member.pendingBooksCount || 0);
+          this.selectedMemberRemainingBooks = Number(member.remainingBooksAllowed || 0);
+        },
+        error: (err: any) => console.error(err)
+      });
+  }
+
+  searchBooks(): void {
+    if (!this.canEditBookField()) return;
+
+    if (!this.bookSearch.trim()) {
+      this.bookSuggestions = [];
+      this.availableCopiesForBook = [];
+      this.selectedBook = null;
+      this.selectedCopyId = null;
+      return;
+    }
+
+    const term = this.bookSearch.trim();
+
+    this.http
+      .get(`${this.baseUrl}/LibraryTransactions/search-books?term=${encodeURIComponent(term)}`)
+      .subscribe({
+        next: (res: any) => {
+          const list: any[] = Array.isArray(res) ? res : (res?.$values || []);
+
+          if (list.length === 0 && term.includes('-C')) {
+            alert('No available book copy found for barcode: ' + term);
+            this.selectedBook = null;
+            this.selectedCopyId = null;
+            this.bookSuggestions = [];
+            this.availableCopiesForBook = [];
+            return;
+          }
+
+          this.availableCopiesForBook = list;
+
+          const exactCopy = list.find(x =>
+            String(x.barcode || x.copyBarcode || '').trim().toLowerCase() === term.toLowerCase()
+          );
+
+          if (exactCopy) {
+            this.selectedBook = {
+              bookId: exactCopy.bookId,
+              bookName: exactCopy.bookName || exactCopy.bookTitle || '',
+              isbn: exactCopy.isbn || exactCopy.ISBN || ''
+            };
+
+            this.bookSearch = `${this.selectedBook.bookName} - ${this.selectedBook.isbn}`;
+
+            this.availableCopiesForBook = list.filter(x =>
+              x.bookId === exactCopy.bookId
+            );
+
+            this.selectedCopyId = exactCopy.id;
+            this.bookSuggestions = [];
+            return;
+          }
+
+          const uniqueBooks: any[] = [];
+
+          list.forEach((x: any) => {
+            if (!uniqueBooks.some(b => b.bookId === x.bookId)) {
+              uniqueBooks.push({
+                bookId: x.bookId,
+                bookName: x.bookName || x.bookTitle || '',
+                isbn: x.isbn || x.ISBN || ''
+              });
+            }
+          });
+
+          this.bookSuggestions = uniqueBooks;
+        },
+        error: (err: any) => {
+          console.error(err);
+          alert(this.getErrorMessage(err, 'Book search failed'));
           this.selectedBook = null;
           this.selectedCopyId = null;
           this.bookSuggestions = [];
           this.availableCopiesForBook = [];
-         return;
         }
-
-        this.availableCopiesForBook = list;
-
-        const exactCopy = list.find(x =>
-          String(x.barcode || x.copyBarcode || '').trim().toLowerCase() === term.toLowerCase()
-        );
-
-        if (exactCopy) {
-          this.selectedBook = {
-            bookId: exactCopy.bookId,
-            bookName: exactCopy.bookName || exactCopy.bookTitle || '',
-            isbn: exactCopy.isbn || exactCopy.ISBN || ''
-          };
-
-          this.bookSearch = `${this.selectedBook.bookName} - ${this.selectedBook.isbn}`;
-
-          this.availableCopiesForBook = list.filter(x =>
-            x.bookId === exactCopy.bookId
-          );
-
-          this.selectedCopyId = exactCopy.id;
-          this.bookSuggestions = [];
-
-          return;
-        }
-
-        const uniqueBooks: any[] = [];
-
-        list.forEach((x: any) => {
-          if (!uniqueBooks.some(b => b.bookId === x.bookId)) {
-            uniqueBooks.push({
-              bookId: x.bookId,
-              bookName: x.bookName || x.bookTitle || '',
-              isbn: x.isbn || x.ISBN || ''
-            });
-          }
-        });
-
-        this.bookSuggestions = uniqueBooks;
-      },
-      error: (err: any) => {
-  console.error(err);
-
-  let msg = 'Book search failed';
-
-  if (typeof err.error === 'string') {
-    msg = err.error;
-  } else if (err.error?.message) {
-    msg = err.error.message;
-  } else if (err.error?.title) {
-    msg = err.error.title;
+      });
   }
 
-  alert(msg);
-
-  this.selectedBook = null;
-  this.selectedCopyId = null;
-  this.bookSuggestions = [];
-  this.availableCopiesForBook = [];
-}
-    });
-}
-
   selectBook(book: any): void {
+    if (!this.canEditBookField()) return;
+
     this.selectedBook = book;
     this.bookSearch = `${book.bookName} - ${book.isbn}`;
     this.bookSuggestions = [];
@@ -359,15 +516,18 @@ alert(msg);
       .get(`${this.baseUrl}/LibraryTransactions/search-books?term=${encodeURIComponent(book.isbn)}`)
       .subscribe({
         next: (res: any) => {
-          this.availableCopiesForBook = res || [];
+          this.availableCopiesForBook = Array.isArray(res) ? res : (res?.$values || []);
         },
-        error: (err: any) => {
-          console.error(err);
-        }
+        error: (err: any) => console.error(err)
       });
   }
 
   addSelectedCopyToGrid(): void {
+    if (!this.canShowAddCopyButton()) {
+      alert('Add copy is allowed only for new book issue.');
+      return;
+    }
+
     if (!this.selectedMember) {
       alert('Please select member first');
       return;
@@ -395,11 +555,9 @@ alert(msg);
       return;
     }
 
-      const remaining = this.selectedMemberRemainingBooks - this.issueRows.length;
-
-    if (remaining <= 0) {
-     alert('Member book issue limit reached. No remaining books allowed.');
-    return;
+    if (!this.canAddMoreBookRows()) {
+      alert('Member book issue limit reached. No remaining books allowed.');
+      return;
     }
 
     const issueDate = this.todayString();
@@ -423,6 +581,11 @@ alert(msg);
   }
 
   removeIssueRow(index: number): void {
+    if (!this.canShowDeleteIssueRow()) {
+      alert('Delete row is allowed only for new book issue.');
+      return;
+    }
+
     this.issueRows.splice(index, 1);
   }
 
@@ -441,36 +604,42 @@ alert(msg);
       return;
     }
 
-    if (this.selectedTransaction) {
-  const row = this.issueRows[0];
+    if (!this.canSaveIssue()) {
+      alert('Member book issue limit exceeded.');
+      return;
+    }
 
-  const payload = {
-    id: this.selectedTransaction.id,
-    memberId: this.selectedMember.id,
-    bookCopyId: row.bookCopyId,
-    issueDate: row.issueDate,
-    dueDate: row.dueDate,
-    remarks: this.commonRemarks,
-    editedBy: this.userName
-  };
+    if (this.issueMode === 'edit' && this.selectedTransaction) {
+      const row = this.issueRows[0];
 
-  this.http
-    .put(`${this.baseUrl}/LibraryTransactions/${this.selectedTransaction.id}`, payload)
-    .subscribe({
-      next: () => {
-        alert('Transaction updated successfully');
-        this.selectedTransaction = null;
-        this.closeIssueModal();
-        this.loadTransactions();
-      },
-      error: (err: any) => {
-        console.error(err);
-        alert(err.error || 'Update failed');
-      }
-    });
+      const payload = {
+        id: this.selectedTransaction.id,
+        memberId: this.selectedMember.id,
+        bookCopyId: row.bookCopyId,
+        issueDate: row.issueDate,
+        dueDate: row.dueDate,
+        remarks: this.commonRemarks,
+        editedBy: this.userName
+      };
 
-  return;
-}
+      this.http
+        .put(`${this.baseUrl}/LibraryTransactions/${this.selectedTransaction.id}`, payload)
+        .subscribe({
+          next: () => {
+            alert('Transaction updated successfully');
+            this.selectedTransaction = null;
+            this.issueMode = 'new';
+            this.closeIssueModal();
+            this.loadTransactions();
+          },
+          error: (err: any) => {
+            console.error(err);
+            alert(this.getErrorMessage(err, 'Update failed'));
+          }
+        });
+
+      return;
+    }
 
     let completed = 0;
     let failed = false;
@@ -490,25 +659,16 @@ alert(msg);
           completed++;
 
           if (completed === this.issueRows.length && !failed) {
-            alert('Books issued successfully');
+            alert(this.issueMode === 'reissue' ? 'Book re-issued successfully' : 'Books issued successfully');
             this.closeIssueModal();
+            this.issueMode = 'new';
             this.loadTransactions();
           }
         },
         error: (err: any) => {
           failed = true;
           console.error(err);
-          let msg = 'Issue failed';
-
-        if (typeof err.error === 'string') {
-         msg = err.error;
-        } else if (err.error?.message) {
-         msg = err.error.message;
-        } else if (err.error?.title) {
-         msg = err.error.title;
-        }
-
-alert(msg);
+          alert(this.getErrorMessage(err, 'Issue failed'));
         }
       });
     });
@@ -554,65 +714,71 @@ alert(msg);
         },
         error: (err: any) => {
           console.error(err);
-          alert(err.error || 'Failed to return book');
+          alert(this.getErrorMessage(err, 'Failed to return book'));
         }
       });
   }
 
   editIssue(item: any): void {
-  this.showIssueModal = true;
+    if (this.isReturnedTransaction(item)) {
+      alert('Cannot edit a returned transaction.');
+      return;
+    }
 
-  this.selectedTransaction = item;
+    this.showIssueModal = true;
+    this.issueMode = 'edit';
+    this.originalTransactionStatus = item.status || '';
+    this.selectedTransaction = item;
 
-  this.selectedMember = {
-    id: item.memberId,
-    memberName: item.memberName,
-    cardexNo: item.cardexNo,
-    phoneNo: item.phoneNo,
-    memberStatus: item.memberStatus,
-    membershipExpiredOn: item.membershipExpiredOn
-  };
+    this.selectedMember = {
+      id: item.memberId,
+      memberName: item.memberName,
+      cardexNo: item.cardexNo,
+      phoneNo: item.phoneNo,
+      memberTypeName: item.memberTypeName,
+      memberStatus: item.memberStatus,
+      membershipExpiredOn: item.membershipExpiredOn
+    };
 
-  this.selectedMemberMaxBooks = Number(item.maxBooksAllowed || 0);
-  this.selectedMemberPendingBooks = Number(item.pendingBooksCount || 0);
-  this.selectedMemberRemainingBooks = Number(item.remainingBooksAllowed || 0);
+    this.selectedMemberMaxBooks = Number(item.maxBooksAllowed || 0);
+    this.selectedMemberPendingBooks = Number(item.pendingBooksCount || 0);
+    this.selectedMemberRemainingBooks = Number(item.remainingBooksAllowed || 0);
 
-  this.selectedBook = {
-    bookId: item.bookId,
-    bookName: item.bookName,
-    isbn: item.isbn || item.ISBN || ''
-  };
+    this.loadSelectedMemberLimitInfo(item.cardexNo);
 
-  this.memberSearch = `${item.memberName} - ${item.cardexNo}`;
-  this.bookSearch = `${item.bookName} - ${item.isbn || item.ISBN || ''}`;
+    this.selectedBook = {
+      bookId: item.bookId,
+      bookName: item.bookName,
+      isbn: item.isbn || item.ISBN || ''
+    };
 
-  this.issueRows = [{
-    bookCopyId: item.bookCopyId,
-    bookName: item.bookName,
-    isbn: item.isbn || item.ISBN || '',
-    barcode: item.barcode,
-    shelfName: item.shelfName,
-    rackName: item.rackName,
-    issueDate: item.issueDate?.substring(0, 10),
-    dueDate: item.dueDate?.substring(0, 10)
-  }];
+    this.memberSearch = `${item.memberName} - ${item.cardexNo}`;
+    this.bookSearch = `${item.bookName} - ${item.isbn || item.ISBN || ''}`;
 
-  this.commonRemarks = item.remarks ? item.remarks + ' | Edited' : 'Edited';
+    this.issueRows = [{
+      bookCopyId: item.bookCopyId,
+      bookName: item.bookName,
+      isbn: item.isbn || item.ISBN || '',
+      barcode: item.barcode,
+      shelfName: item.shelfName,
+      rackName: item.rackName,
+      issueDate: item.issueDate?.substring(0, 10),
+      dueDate: item.dueDate?.substring(0, 10)
+    }];
 
-  this.memberSuggestions = [];
-  this.bookSuggestions = [];
-  this.availableCopiesForBook = [];
-}
+    this.commonRemarks = item.remarks ? item.remarks + ' | Edited' : 'Edited';
 
-  reIssue(item: any): void {
-  const status = (item.status || '').toLowerCase();
-
-  if (status === 'returned') {
-    this.openReIssueModal(item);
-    return;
+    this.memberSuggestions = [];
+    this.bookSuggestions = [];
+    this.availableCopiesForBook = [];
   }
 
-  if (status === 'issued') {
+  reIssue(item: any): void {
+    if (this.isReturnedTransaction(item)) {
+      alert('Cannot re-issue a returned transaction.');
+      return;
+    }
+
     if (!confirm('This book is currently issued. Do you want to auto-return and re-issue it?')) {
       return;
     }
@@ -629,55 +795,58 @@ alert(msg);
       .post(`${this.baseUrl}/LibraryTransactions/return/${item.bookIssueId}`, returnData)
       .subscribe({
         next: () => {
-          this.openReIssueModal(item);
+          this.openReIssueModal({
+            ...item,
+            status: 'Issued'
+          });
           this.loadTransactions();
         },
         error: (err: any) => {
           console.error(err);
-          alert(err.error || 'Auto return failed');
+          alert(this.getErrorMessage(err, 'Auto return failed'));
         }
       });
-
-    return;
   }
 
-  alert('Invalid transaction status.');
-}
+  openReIssueModal(item: any): void {
+    this.showIssueModal = true;
+    this.issueMode = 'reissue';
+    this.originalTransactionStatus = 'Issued';
+    this.selectedTransaction = null;
 
-openReIssueModal(item: any): void {
-  this.showIssueModal = true;
+    this.selectedMember = {
+      id: item.memberId,
+      memberName: item.memberName,
+      cardexNo: item.cardexNo,
+      phoneNo: item.phoneNo,
+      memberTypeName: item.memberTypeName,
+      memberStatus: item.memberStatus,
+      membershipExpiredOn: item.membershipExpiredOn
+    };
 
-  this.selectedMember = {
-    id: item.memberId,
-    memberName: item.memberName,
-    cardexNo: item.cardexNo,
-    phoneNo: item.phoneNo,
-    memberStatus: item.memberStatus,
-    membershipExpiredOn: item.membershipExpiredOn
-  };
+    this.selectedMemberMaxBooks = Number(item.maxBooksAllowed || 0);
+    this.selectedMemberPendingBooks = Number(item.pendingBooksCount || 0);
+    this.selectedMemberRemainingBooks = Number(item.remainingBooksAllowed || 0);
 
-  this.selectedMemberMaxBooks = Number(item.maxBooksAllowed || 0);
-  this.selectedMemberPendingBooks = Number(item.pendingBooksCount || 0);
-  this.selectedMemberRemainingBooks = Number(item.remainingBooksAllowed || 0);
+    this.loadSelectedMemberLimitInfo(item.cardexNo);
 
-  this.selectedBook = {
-    bookId: item.bookId,
-    bookName: item.bookName,
-    isbn: item.isbn || item.ISBN || ''
-  };
+    this.selectedBook = {
+      bookId: item.bookId,
+      bookName: item.bookName,
+      isbn: item.isbn || item.ISBN || ''
+    };
 
-  this.memberSearch = `${item.memberName} - ${item.cardexNo}`;
-  this.bookSearch = `${item.bookName} - ${item.isbn || item.ISBN || ''}`;
+    this.memberSearch = `${item.memberName} - ${item.cardexNo}`;
+    this.bookSearch = `${item.bookName} - ${item.isbn || item.ISBN || ''}`;
 
-  this.memberSuggestions = [];
-  this.bookSuggestions = [];
-  this.availableCopiesForBook = [];
-  this.selectedCopyId = null;
+    this.memberSuggestions = [];
+    this.bookSuggestions = [];
+    this.availableCopiesForBook = [];
+    this.selectedCopyId = null;
 
-  const issueDate = this.todayString();
+    const issueDate = this.todayString();
 
-  this.issueRows = [
-    {
+    this.issueRows = [{
       bookCopyId: item.bookCopyId,
       bookName: item.bookName,
       isbn: item.isbn || item.ISBN || '',
@@ -686,30 +855,29 @@ openReIssueModal(item: any): void {
       rackName: item.rackName,
       issueDate: issueDate,
       dueDate: this.dueDateString(issueDate)
-    }
-  ];
+    }];
 
-  this.commonRemarks = item.remarks  ? item.remarks + ' | Re-issued'  : 'Re-issued';
-}
-
-  deleteTransaction(id: number): void {
-  if (!confirm('Are you sure you want to delete this transaction?')) {
-    return;
+    this.commonRemarks = item.remarks ? item.remarks + ' | Re-issued' : 'Re-issued';
   }
 
-  this.http
-    .delete(`${this.baseUrl}/LibraryTransactions/${id}?deletedBy=${encodeURIComponent(this.userName)}`)
-    .subscribe({
-      next: () => {
-        alert('Transaction deleted');
-        this.loadTransactions();
-      },
-      error: (err: any) => {
-        console.error(err);
-        alert(err.error || 'Delete failed');
-      }
-    });
-}
+  deleteTransaction(id: number): void {
+    if (!confirm('Are you sure you want to delete this transaction?')) {
+      return;
+    }
+
+    this.http
+      .delete(`${this.baseUrl}/LibraryTransactions/${id}?deletedBy=${encodeURIComponent(this.userName)}`)
+      .subscribe({
+        next: () => {
+          alert('Transaction deleted');
+          this.loadTransactions();
+        },
+        error: (err: any) => {
+          console.error(err);
+          alert(this.getErrorMessage(err, 'Delete failed'));
+        }
+      });
+  }
 
   exportExcel(): void {
     const exportData = this.filteredTransactions.map(x => ({
@@ -718,13 +886,13 @@ openReIssueModal(item: any): void {
       CardexNo: x.cardexNo,
       PhoneNo: x.phoneNo,
       MemberName: x.memberName,
-      ISBN: x.isbn, 
-      BookTitle: x.bookName,
+      ISBN: x.isbn,
       Barcode: x.barcode,
+      BookTitle: x.bookName,
       IssueDate: this.formatDate(x.issueDate),
       DueDate: this.formatDate(x.dueDate),
       ReturnDate: this.formatDate(x.returnDate),
-      Status: x.status,
+      Status: this.getDisplayStatus(x),
       Remarks: x.remarks
     }));
 

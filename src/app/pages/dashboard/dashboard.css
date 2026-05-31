@@ -1,19 +1,158 @@
+.dashboard-container {
+  padding: 10px 18px;
+}
+
+/* HEADER */
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 22px;
+}
+
+.dashboard-header h2 {
+  font-size: 44px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+/* YEAR FILTER */
+
+.year-filter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.year-filter label {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.year-filter select {
+  width: 125px;
+  height: 40px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 0 12px;
+  font-size: 15px;
+  font-weight: 600;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+/* CARDS */
+
 .cards {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
 }
 
 .card {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  font-size: 18px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-top: 5px solid #2563eb;
+  border-radius: 14px;
+  padding: 18px 22px;
+  min-height: 95px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+  transition: all 0.2s ease;
 }
 
-  .card b {
-    display: block;
-    font-size: 32px;
-    margin-top: 10px;
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.1);
+}
+
+.card span {
+  font-size: 15px;
+  font-weight: 600;
+  color: #6b7280;
+  margin-bottom: 8px;
+}
+
+.card b {
+  font-size: 34px;
+  font-weight: 800;
+  color: #111827;
+  line-height: 1;
+}
+
+/* DIFFERENT CARD COLORS */
+
+.card:nth-child(1) {
+  border-top-color: #2563eb;
+}
+
+.card:nth-child(2) {
+  border-top-color: #16a34a;
+}
+
+.card:nth-child(3) {
+  border-top-color: #7c3aed;
+}
+
+.card:nth-child(4) {
+  border-top-color: #0891b2;
+}
+
+.card:nth-child(5) {
+  border-top-color: #22c55e;
+}
+
+.card:nth-child(6) {
+  border-top-color: #f59e0b;
+}
+
+.card:nth-child(7) {
+  border-top-color: #dc2626;
+}
+
+.card:nth-child(8) {
+  border-top-color: #9333ea;
+}
+
+.card:nth-child(9) {
+  border-top-color: #0f766e;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1200px) {
+  .cards {
+    grid-template-columns: repeat(2, 1fr);
   }
+}
+
+@media (max-width: 700px) {
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .dashboard-header h2 {
+    font-size: 36px;
+  }
+
+  .cards {
+    grid-template-columns: 1fr;
+  }
+
+  .year-filter {
+    width: 100%;
+  }
+
+  .year-filter select {
+    width: 100%;
+  }
+}

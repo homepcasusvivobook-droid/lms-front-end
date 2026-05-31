@@ -3,9 +3,7 @@
   <div class="page-header">
     <h1>Book Purchase</h1>
 
-    <button *ngIf="canAddPurchase()"
-        class="add-btn"
-        (click)="openAddModal()">
+    <button *ngIf="canAddPurchase()" class="add-btn" (click)="openAddModal()">
       + Add Purchase
     </button>
   </div>
@@ -20,30 +18,20 @@
 
     <div class="date-filter">
       <label>From Date</label>
-      <input
-        type="date"
-        [(ngModel)]="fromDate">
+      <input type="date" [(ngModel)]="fromDate">
     </div>
 
     <div class="date-filter">
       <label>To Date</label>
-      <input
-        type="date"
-        [(ngModel)]="toDate">
+      <input type="date" [(ngModel)]="toDate">
     </div>
 
-    <button
-      class="filter-search-btn"
-      (click)="onSearch()">
-      Search
-    </button>
+    <button class="filter-search-btn" (click)="onSearch()">Search</button>
 
   </div>
 
   <div class="table-wrapper">
-
     <table class="purchase-table">
-
       <thead>
         <tr>
           <th>ID</th>
@@ -69,37 +57,23 @@
           <td>{{ item.remarks }}</td>
 
           <td *ngIf="canView()">
-             <button class="view-btn"
-             (click)="viewPurchase(item)">
-              View
-            </button>
+            <button class="view-btn" (click)="viewPurchase(item)">View</button>
           </td>
 
           <td *ngIf="canView()">
-            <button class="barcode-btn"
-             (click)="printBarcode(item)">
-             Print Barcode
-            </button>
+            <button class="barcode-btn" (click)="printBarcode(item)">Print Barcode</button>
           </td>
 
           <td *ngIf="canEdit()">
-            <button class="edit-btn"
-             (click)="editPurchase(item)">
-              Edit
-            </button>
+            <button class="edit-btn" (click)="editPurchase(item)">Edit</button>
           </td>
 
           <td *ngIf="canDelete()">
-            <button class="delete-btn"
-             (click)="deletePurchase(item.id)">
-              Delete
-            </button>
-        </td>
+            <button class="delete-btn" (click)="deletePurchase(item.id)">Delete</button>
+          </td>
         </tr>
       </tbody>
-
     </table>
-
   </div>
 
 </div>
@@ -110,107 +84,88 @@
 
     <div class="modal-header">
       <h2>{{ showEditModal ? 'Edit Purchase' : 'Add Purchase' }}</h2>
-
-      <button class="close-btn" (click)="closeModal()">
-        X
-      </button>
+      <button class="close-btn" (click)="closeModal()">X</button>
     </div>
 
-    <div class="form-group">
-  <label>Purchase Type</label>
-  <div>
-    <label>
-      <input type="radio" value="Purchase" [(ngModel)]="purchaseForm.purchaseType">
-      Purchase
-    </label>
+    <div class="form-grid">
 
-    <label style="margin-left: 20px;">
-      <input type="radio" value="Sponsorship" [(ngModel)]="purchaseForm.purchaseType">
-      Sponsorship
-    </label>
+  <div class="form-group purchase-type-box">
+    <label>Purchase Type</label>
+    <div class="radio-row">
+      <label><input type="radio" value="Purchase" [(ngModel)]="purchaseForm.purchaseType"> Purchase</label>
+      <label><input type="radio" value="Sponsorship" [(ngModel)]="purchaseForm.purchaseType"> Sponsorship</label>
+    </div>
   </div>
-</div>
 
-<div class="form-group" *ngIf="purchaseForm.purchaseType === 'Purchase'">
-  <label>Invoice No</label>
-  <input
-    type="text"
-    [(ngModel)]="purchaseForm.invoiceNo"
-    (input)="purchaseForm.invoiceNo = purchaseForm.invoiceNo.trimStart()">
-</div>
+  <div class="form-group invoice-field" *ngIf="purchaseForm.purchaseType === 'Purchase'">
+    <label>Invoice No</label>
+    <input type="text" [(ngModel)]="purchaseForm.invoiceNo"
+      (input)="purchaseForm.invoiceNo = purchaseForm.invoiceNo.trimStart()">
+  </div>
 
-<div class="form-group" *ngIf="purchaseForm.purchaseType === 'Purchase'">
-  <label>Store Name</label>
-  <input
-    type="text"
-    [(ngModel)]="purchaseForm.storeName"
-    (input)="purchaseForm.storeName = purchaseForm.storeName.trimStart()">
-</div>
+  <div class="form-group store-field" *ngIf="purchaseForm.purchaseType === 'Purchase'">
+    <label>Store Name</label>
+    <input type="text" [(ngModel)]="purchaseForm.storeName"
+      (input)="purchaseForm.storeName = purchaseForm.storeName.trimStart()">
+  </div>
 
-<div class="form-group" *ngIf="purchaseForm.purchaseType === 'Sponsorship'">
-  <label>Sponsor Name</label>
-  <input
-    type="text"
-    [(ngModel)]="purchaseForm.sponsorName"
-    (input)="purchaseForm.sponsorName = purchaseForm.sponsorName.trimStart()">
-</div>
+  <div class="form-group sponsor-field" *ngIf="purchaseForm.purchaseType === 'Sponsorship'">
+    <label>Sponsor Name</label>
+    <input type="text" [(ngModel)]="purchaseForm.sponsorName"
+      (input)="purchaseForm.sponsorName = purchaseForm.sponsorName.trimStart()">
+  </div>
 
-<div class="form-group">
-  <label>Date</label>
-  <input type="date" [(ngModel)]="purchaseForm.purchaseDate">
-</div>
+  <div class="form-group date-field">
+    <label>Date</label>
+    <input type="date" [(ngModel)]="purchaseForm.purchaseDate">
+  </div>
 
-<div class="form-group">
-  <label>Currency</label>
-  <select [(ngModel)]="purchaseForm.currency" (change)="calculateAed()">
-    <option value="AED">AED</option>
-    <option value="INR">INR</option>
-    <option value="USD">USD</option>
-  </select>
-</div>
+  <div class="form-group total-field">
+    <label>Total Cost</label>
+    <input type="number" [(ngModel)]="purchaseForm.totalCost" (input)="calculateAed()">
+  </div>
 
-<div class="form-group">
-  <label>Total Cost</label>
-  <input
-    type="number"
-    [(ngModel)]="purchaseForm.totalCost"
-    (input)="calculateAed()">
-</div>
+  <div class="form-group currency-field">
+    <label>Currency</label>
+    <select [(ngModel)]="purchaseForm.currency" (change)="onCurrencyChange()">
+      <option
+        *ngFor="let c of currencies"
+        [value]="c.currencyCode">
+        {{ c.currencyCode }}
+      </option>
+    </select>
+  </div>
 
-<div class="form-group">
-  <label>Conversion Rate</label>
-  <input
-    type="number"
-    [(ngModel)]="purchaseForm.conversionRate"
-    (input)="calculateAed()">
-</div>
+  <div class="form-group rate-field">
+    <label>Conversion Rate</label>
+    <input type="number" [(ngModel)]="purchaseForm.conversionRate"
+      [readonly]="purchaseForm.currency === 'AED'" (input)="calculateAed()">
+  </div>
 
-<div class="form-group">
-  <label>Total Cost AED</label>
-  <input type="number" [(ngModel)]="purchaseForm.totalCostAed" readonly>
-</div>
+  <div class="form-group aed-field">
+    <label>Total Cost AED</label>
+    <input type="number" [(ngModel)]="purchaseForm.totalCostAed" readonly>
+  </div>
 
-<div class="form-group full-width">
-  <label>Remarks</label>
-  <input type="text" [(ngModel)]="purchaseForm.remarks">
+  <div class="form-group remarks-field">
+    <label>Remarks</label>
+    <textarea [(ngModel)]="purchaseForm.remarks"></textarea>
+  </div>
+
 </div>
 
     <div class="detail-table-wrapper">
-
       <table class="purchase-table">
-
         <thead>
           <tr>
             <th>ISBN</th>
             <th>Title</th>
             <th>Language</th>
             <th>Category</th>
-            <th>Custom Barcode</th>
+            <th>Barcode</th>
             <th>Shelf</th>
             <th>Rack</th>
             <th>Qty</th>
-            <th>Cost</th>
-            <th>Remarks</th>
             <th>Action</th>
           </tr>
         </thead>
@@ -242,13 +197,10 @@
             </td>
 
             <td>
-              <select [(ngModel)]="row.shelfId">
+              <select [(ngModel)]="row.shelfId" (change)="row.rackId = ''">
                 <option value="">Select</option>
-
-                <option
-                  *ngFor="let s of shelves"
-                  [value]="s.id">
-                  {{ s.shelfCode }} - {{ s.shelfName }}
+                <option *ngFor="let s of shelves" [value]="s.id">
+                  {{ s.shelfName }}
                 </option>
               </select>
             </td>
@@ -256,11 +208,10 @@
             <td>
               <select [(ngModel)]="row.rackId">
                 <option value="">Select</option>
-
                 <option
-                  *ngFor="let r of racks"
+                  *ngFor="let r of getRacksByShelf(row.shelfId)"
                   [value]="r.id">
-                  {{ r.rackCode }} - {{ r.rackName }}
+                  {{ r.rackName }}
                 </option>
               </select>
             </td>
@@ -273,57 +224,24 @@
             </td>
 
             <td>
-              <input
-                type="number"
-                [(ngModel)]="row.cost"
-                (input)="calculateTotal()">
-            </td>
-
-            <td>
-              <input type="text" [(ngModel)]="row.remarks">
-            </td>
-            
-            <td>
-              <button
-               class="row-delete-btn"
-               (click)="removeRow(i)">
-                Delete
-              </button>
+              <button class="row-delete-btn" (click)="removeRow(i)">Delete</button>
             </td>
 
           </tr>
         </tbody>
-
       </table>
-
     </div>
 
     <div class="footer-buttons">
 
-      <button class="add-row-btn" (click)="addRow()">
-        + Add Row
-      </button>
+      <button class="add-row-btn" (click)="addRow()">+ Add Row</button>
 
       <div class="right-buttons">
+        <button class="cancel-btn" (click)="closeModal()">Cancel</button>
 
-        <button class="cancel-btn" (click)="closeModal()">
-          Cancel
-        </button>
+        <button class="save-btn" *ngIf="showAddModal" (click)="savePurchase()">Save</button>
 
-        <button
-          class="save-btn"
-          *ngIf="showAddModal"
-          (click)="savePurchase()">
-          Save
-        </button>
-
-        <button
-          class="save-btn"
-          *ngIf="showEditModal"
-          (click)="updatePurchase()">
-          Update
-        </button>
-
+        <button class="save-btn" *ngIf="showEditModal" (click)="updatePurchase()">Update</button>
       </div>
 
     </div>
@@ -338,25 +256,18 @@
 
     <div class="modal-header">
       <h2>Purchase Details</h2>
-
-      <button class="close-btn" (click)="closeModal()">
-        X
-      </button>
+      <button class="close-btn" (click)="closeModal()">X</button>
     </div>
 
     <div class="view-section">
-
       <div><strong>Invoice :</strong> {{ selectedPurchase?.invoiceNo }}</div>
       <div><strong>Store :</strong> {{ selectedPurchase?.storeName }}</div>
       <div><strong>Date :</strong> {{ formatDate(selectedPurchase?.purchaseDate) }}</div>
       <div><strong>Total :</strong> {{ selectedPurchase?.totalCost }}</div>
-
     </div>
 
     <div class="detail-table-wrapper">
-
       <table class="purchase-table">
-
         <thead>
           <tr>
             <th>ISBN</th>
@@ -365,7 +276,6 @@
             <th>Shelf</th>
             <th>Rack</th>
             <th>Qty</th>
-            <th>Cost</th>
           </tr>
         </thead>
 
@@ -377,12 +287,9 @@
             <td>{{ d.shelfName }}</td>
             <td>{{ d.rackName }}</td>
             <td>{{ d.noOfCopies }}</td>
-            <td>{{ d.cost }}</td>
           </tr>
         </tbody>
-
       </table>
-
     </div>
 
   </div>

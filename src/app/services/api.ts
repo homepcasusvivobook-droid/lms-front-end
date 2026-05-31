@@ -27,17 +27,6 @@ export class Api {
   }
 
   // =========================
-  // DASHBOARD
-  // =========================
-
-  getDashboard(): Observable<any> {
-
-    return this.http.get(
-      `${this.baseUrl}/Dashboard`
-    );
-  }
-
-  // =========================
   // USERS
   // =========================
 
@@ -326,78 +315,67 @@ export class Api {
   }
 
   // =========================
-  // SHELF
-  // =========================
+// SHELF
+// =========================
 
-  getShelf(): Observable<any> {
+getShelves(): Observable<any> {
+  return this.http.get(`${this.baseUrl}/Shelves`);
+}
 
-    return this.http.get(
-      `${this.baseUrl}/Shelf`
-    );
-  }
+createShelf(data: any): Observable<any> {
+  return this.http.post(
+    `${this.baseUrl}/Shelves`,
+    data,
+    { responseType: 'text' as 'json' }
+  );
+}
 
-  createShelf(data: any): Observable<any> {
+updateShelf(id: number, data: any): Observable<any> {
+  return this.http.put(
+    `${this.baseUrl}/Shelves/${id}`,
+    data,
+    { responseType: 'text' as 'json' }
+  );
+}
 
-    return this.http.post(
-      `${this.baseUrl}/Shelf`,
-      data,
-      { responseType: 'text' as 'json' }
-    );
-  }
+deleteShelf(id: number, deletedBy: string = 'Admin'): Observable<any> {
+  return this.http.delete(
+    `${this.baseUrl}/Shelves/${id}?deletedBy=${deletedBy}`,
+    { responseType: 'text' as 'json' }
+  );
+}
 
-  updateShelf(id: number, data: any): Observable<any> {
 
-    return this.http.put(
-      `${this.baseUrl}/Shelf/${id}`,
-      data,
-      { responseType: 'text' as 'json' }
-    );
-  }
+// =========================
+// RACK
+// =========================
 
-  deleteShelf(id: number, deletedBy: string = 'Admin'): Observable<any> {
+getRacks(): Observable<any> {
+  return this.http.get(`${this.baseUrl}/Racks`);
+}
 
-    return this.http.delete(
-      `${this.baseUrl}/Shelf/${id}?deletedBy=${deletedBy}`,
-      { responseType: 'text' as 'json' }
-    );
-  }
+createRack(data: any): Observable<any> {
+  return this.http.post(
+    `${this.baseUrl}/Racks`,
+    data,
+    { responseType: 'text' as 'json' }
+  );
+}
 
-  // =========================
-  // RACK
-  // =========================
+updateRack(id: number, data: any): Observable<any> {
+  return this.http.put(
+    `${this.baseUrl}/Racks/${id}`,
+    data,
+    { responseType: 'text' as 'json' }
+  );
+}
 
-  getRack(): Observable<any> {
-
-    return this.http.get(
-      `${this.baseUrl}/Rack`
-    );
-  }
-
-  createRack(data: any): Observable<any> {
-
-    return this.http.post(
-      `${this.baseUrl}/Rack`,
-      data,
-      { responseType: 'text' as 'json' }
-    );
-  }
-
-  updateRack(id: number, data: any): Observable<any> {
-
-    return this.http.put(
-      `${this.baseUrl}/Rack/${id}`,
-      data,
-      { responseType: 'text' as 'json' }
-    );
-  }
-
-  deleteRack(id: number, deletedBy: string = 'Admin'): Observable<any> {
-
-    return this.http.delete(
-      `${this.baseUrl}/Rack/${id}?deletedBy=${deletedBy}`,
-      { responseType: 'text' as 'json' }
-    );
-  }
+deleteRack(id: number, deletedBy: string = 'Admin'): Observable<any> {
+  return this.http.delete(
+    `${this.baseUrl}/Racks/${id}?deletedBy=${deletedBy}`,
+    { responseType: 'text' as 'json' }
+  );
+}
 
   // =========================
   // BOOK PURCHASE
@@ -436,7 +414,17 @@ getBookPurchaseById(id: number): Observable<any> {
 // MISSING OLD METHOD NAMES - COMPATIBILITY
 // =========================
 
-getDashboardSummary(): Observable<any> {
+  // =========================
+  // DASHBOARD
+  // =========================
+
+getDashboardSummary(fromDate?: string, toDate?: string): Observable<any> {
+  if (fromDate && toDate) {
+    return this.http.get(
+      `${this.baseUrl}/Dashboard/summary?fromDate=${fromDate}&toDate=${toDate}`
+    );
+  }
+
   return this.http.get(`${this.baseUrl}/Dashboard/summary`);
 }
 
@@ -446,14 +434,6 @@ saveBook(data: any): Observable<any> {
 
 bulkImportBooks(data: any[]): Observable<any> {
   return this.http.post(`${this.baseUrl}/Books/bulk-import`, data);
-}
-
-getShelves(): Observable<any> {
-  return this.http.get(`${this.baseUrl}/Shelves`);
-}
-
-getRacks(): Observable<any> {
-  return this.http.get(`${this.baseUrl}/Racks`);
 }
 
 saveBookPurchase(data: any): Observable<any> {
@@ -493,4 +473,28 @@ updateMemberType(id: number, data: any): Observable<any> {
 deleteMemberType(id: number): Observable<any> {
   return this.http.delete(`${this.baseUrl}/MemberTypes/${id}`);
 }
+
+// =========================
+// Currencies
+// =========================
+getCurrencies() {
+  return this.http.get(`${this.baseUrl}/Currencies`);
+}
+
+saveCurrency(data: any) {
+  return this.http.post(`${this.baseUrl}/Currencies`, data);
+}
+
+updateCurrency(id: number, data: any) {
+  return this.http.put(`${this.baseUrl}/Currencies/${id}`, data);
+}
+
+deleteCurrency(id: number, deletedBy: string) {
+  return this.http.delete(`${this.baseUrl}/Currencies/${id}?deletedBy=${deletedBy}`);
+}
+
+getBookCopiesForReprint(): Observable<any> {
+  return this.http.get(`${this.baseUrl}/Books/copies-for-reprint`);
+}
+
 }

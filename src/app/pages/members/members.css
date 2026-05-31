@@ -142,27 +142,54 @@
   z-index: 2;
 }
 
+/* BUTTONS */
+
 .edit-btn,
 .delete-btn,
-.renew-btn {
+.renew-btn,
+.print-btn {
   border: none;
   padding: 8px 14px;
   border-radius: 6px;
   font-size: 14px;
   cursor: pointer;
   color: white;
+  min-width: 90px;
+  font-weight: 600;
 }
 
 .edit-btn {
   background: #2563eb;
 }
 
+.edit-btn:hover {
+  background: #1d4ed8;
+}
+
 .delete-btn {
   background: #dc2626;
 }
 
+.delete-btn:hover {
+  background: #b91c1c;
+}
+
 .renew-btn {
   background: #16a34a;
+}
+
+.renew-btn:hover {
+  background: #15803d;
+}
+
+/* NEW PRINT BUTTON */
+
+.print-btn {
+  background: #7c3aed;
+}
+
+.print-btn:hover {
+  background: #6d28d9;
 }
 
 .popup-overlay {
@@ -230,7 +257,8 @@
   font-size: 14px;
 }
 
-.form-group input {
+.form-group input,
+.form-group select {
   height: 40px;
   padding: 0 12px;
   border: 1px solid #ccc;
@@ -266,6 +294,7 @@
 .close-btn {
   background: #6b7280;
 }
+
 select {
   width: 100%;
   height: 58px;

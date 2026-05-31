@@ -4,13 +4,15 @@
     <h1>Members</h1>
 
     <div class="header-actions">
-      <button *ngIf="canExportExcel()"
+      <button
+        *ngIf="canExportExcel()"
         class="export-btn"
         (click)="exportMembersToExcel()">
         Export Excel
       </button>
 
-      <button *ngIf="canAddMember()"
+      <button
+        *ngIf="canAddMember()"
         class="create-btn"
         (click)="addMember()">
         + Add Member
@@ -52,6 +54,7 @@
 
       <thead>
         <tr>
+          <th (click)="sortData('id')">ID ↕</th>
           <th (click)="sortData('memberId')">Member ID ↕</th>
           <th (click)="sortData('cardexNo')">Cardex No ↕</th>
           <th (click)="sortData('memberName')">Name ↕</th>
@@ -59,14 +62,16 @@
           <th (click)="sortData('memberTypeName')">Member Type ↕</th>
           <th (click)="sortData('membershipStatus')">Status ↕</th>
           <th (click)="sortData('expiredOn')">Expired On ↕</th>
+          <th *ngIf="canRenewal()">Renewal</th>
+          <th>Print</th>
           <th *ngIf="canEdit()">Edit</th>
           <th *ngIf="canDelete()">Delete</th>
-          <th *ngIf="canRenewal()">Renewal</th>
         </tr>
       </thead>
 
       <tbody>
         <tr *ngFor="let member of filteredMembers">
+          <td>{{ member.id }}</td>
           <td>{{ member.memberId }}</td>
           <td>{{ member.cardexNo }}</td>
           <td>{{ member.memberName }}</td>
@@ -75,25 +80,36 @@
           <td>{{ member.membershipStatus }}</td>
           <td>{{ member.expiredOn ? (member.expiredOn | date:'dd-MM-yyyy') : '-' }}</td>
 
+          <td *ngIf="canRenewal()">
+            <button
+              class="renew-btn"
+              (click)="openRenewal(member)">
+              Renewal
+            </button>
+          </td>
+
+          <td>
+            <button
+              class="print-btn"
+              (click)="printMember(member)">
+              Print
+            </button>
+          </td>
+
           <td *ngIf="canEdit()">
-            <button class="edit-btn"
-             (click)="editMember(member)">
+            <button
+              class="edit-btn"
+              (click)="editMember(member)">
               Edit
             </button>
           </td>
 
           <td *ngIf="canDelete()">
-            <button class="delete-btn"
+            <button
+              class="delete-btn"
               (click)="deleteMember(member)">
               Delete
-             </button>
-          </td>
-
-          <td *ngIf="canRenewal()">
-              <button class="renew-btn"
-                (click)="openRenewal(member)">
-                Renewal
-               </button>
+            </button>
           </td>
         </tr>
       </tbody>
@@ -119,7 +135,11 @@
 
       <div class="form-group">
         <label>Member ID</label>
-        <input type="text" [(ngModel)]="memberForm.memberId">
+        <input
+          type="text"
+          [(ngModel)]="memberForm.memberId"
+          readonly
+          placeholder="Auto Generated">
       </div>
 
       <div class="form-group">
@@ -148,11 +168,18 @@
       </div>
 
       <div class="form-group">
-          <label>Member Type</label>
-          <select [(ngModel)]="memberForm.memberTypeId">
-            <option [ngValue]="null">Select Member Type</option>
-           <option *ngFor="let type of memberTypes" [ngValue]="type.id"> {{ type.memberTypeName }} </option>
-          </select>
+        <label>Member Type</label>
+        <select
+          [(ngModel)]="memberForm.memberTypeId"
+          [disabled]="isEdit">
+          <option [ngValue]="null">Select Member Type</option>
+
+          <option
+            *ngFor="let type of memberTypes"
+            [ngValue]="type.id || type.Id">
+            {{ type.memberTypeName || type.MemberTypeName }}
+          </option>
+        </select>
       </div>
 
       <div class="form-group full-width">

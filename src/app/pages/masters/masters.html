@@ -52,7 +52,12 @@
       routerLink="/rack">
       <h3>Rack</h3>
     </div>
-
+    <div
+      class="master-card"
+      *ngIf="canShowMasterTile()"
+      routerLink="/currencies">
+      <h3>Currency</h3>
+    </div>
     <div
       class="master-card"
       *ngIf="canShowMasterTile()"

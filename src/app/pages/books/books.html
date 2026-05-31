@@ -3,18 +3,30 @@
   <div class="page-header">
     <h1>Books</h1>
 
-    <button class="export-btn" (click)="exportExcel()">
-      Export Excel
-    </button>
+    <div class="header-buttons">
+      <button class="barcode-reprint-btn" (click)="openBarcodeReprintModal()">
+        Barcode Reprint
+      </button>
+
+      <button class="export-btn" (click)="exportExcel()">
+        Export Excel
+      </button>
+    </div>
   </div>
 
-  <div class="search-section">
+  <div class="search-section book-filter-row">
     <input
       type="text"
       [(ngModel)]="searchText"
       placeholder="Search books..."
       class="search-input"
     />
+
+    <select class="category-filter" [(ngModel)]="selectedCategory">
+      <option *ngFor="let c of categories" [value]="c">
+        {{ c }}
+      </option>
+    </select>
   </div>
 
   <div class="table-wrapper">
@@ -22,6 +34,7 @@
       <thead>
         <tr>
           <th>ID</th>
+          <th>ISBN</th>
           <th>Custom Barcode</th>
           <th>Title</th>
           <th>Author</th>
@@ -38,6 +51,7 @@
       <tbody>
         <tr *ngFor="let book of filteredBooks">
           <td>{{ book.id || book.Id }}</td>
+          <td>{{ getISBN(book) }}</td>
           <td>{{ getCustomBarcode(book) }}</td>
           <td>{{ getTitle(book) }}</td>
           <td>{{ getAuthor(book) }}</td>
@@ -56,7 +70,7 @@
         </tr>
 
         <tr *ngIf="filteredBooks.length === 0">
-          <td colspan="11" class="no-data">
+          <td colspan="12" class="no-data">
             No books found
           </td>
         </tr>
@@ -77,6 +91,7 @@
 
         <div class="book-meta">
           <span><strong>ID:</strong> {{ selectedBook?.id || selectedBook?.Id }}</span>
+          <span><strong>ISBN:</strong> {{ getISBN(selectedBook) }}</span>
           <span><strong>Barcode:</strong> {{ getCustomBarcode(selectedBook) }}</span>
           <span><strong>Author:</strong> {{ getAuthor(selectedBook) }}</span>
           <span><strong>Publisher:</strong> {{ getPublisher(selectedBook) }}</span>
@@ -119,6 +134,116 @@
           </tr>
         </tbody>
       </table>
+    </div>
+
+  </div>
+</div>
+
+<div class="modal-backdrop" *ngIf="showBarcodeReprintModal">
+  <div class="modal-box barcode-modal">
+
+    <div class="view-book-header">
+      <h2 class="book-title">Barcode Reprint</h2>
+
+      <button class="close-btn" (click)="closeBarcodeReprintModal()">
+        X
+      </button>
+    </div>
+
+    <div class="barcode-search-grid">
+
+      <div class="form-group autocomplete-box">
+        <label>Search ISBN / Book Copy Barcode / Book Name</label>
+
+        <input
+          type="text"
+          [(ngModel)]="barcodeSearchText"
+          (input)="onBarcodeSearchChange()"
+          placeholder="Search book copy..."
+        />
+
+        <div
+          class="autocomplete-list"
+          *ngIf="showBarcodeSuggestions && filteredBookSearchResults.length > 0">
+
+          <div
+            class="autocomplete-item"
+            *ngFor="let copy of filteredBookSearchResults"
+            (click)="selectBarcodeSearchItem(copy)">
+
+            {{ getCopyTitle(copy) }} | ISBN: {{ getCopyISBN(copy) }}
+          </div>
+
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Book Copy Barcode / Serial No</label>
+
+        <select [(ngModel)]="selectedBookCopyId">
+          <option value="">Select Copy</option>
+
+          <option
+            *ngFor="let copy of filteredBookCopiesForReprint"
+            [value]="getCopyId(copy)">
+            {{ getCopyBarcode(copy) }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group add-copy-button-box">
+        <button class="add-copy-btn" (click)="addBarcodeCopy()">
+          + Add
+        </button>
+      </div>
+
+    </div>
+
+    <div class="table-wrapper barcode-selected-table">
+      <table class="summary-table">
+        <thead>
+          <tr>
+            <th>Book Name</th>
+            <th>ISBN</th>
+            <th>Barcode</th>
+            <th>Shelf</th>
+            <th>Rack</th>
+            <th>Delete</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let copy of selectedBarcodeCopies; let i = index">
+            <td>{{ getCopyTitle(copy) }}</td>
+            <td>{{ getCopyISBN(copy) }}</td>
+            <td>{{ getCopyBarcode(copy) }}</td>
+            <td>{{ getCopyShelf(copy) }}</td>
+            <td>{{ getCopyRack(copy) }}</td>
+
+            <td>
+              <button class="remove-copy-btn" (click)="removeBarcodeCopy(i)">
+                Delete
+              </button>
+            </td>
+          </tr>
+
+          <tr *ngIf="selectedBarcodeCopies.length === 0">
+            <td colspan="6" class="no-data">
+              No book copies added
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="barcode-footer">
+      <button class="cancel-btn" (click)="closeBarcodeReprintModal()">
+        Close
+      </button>
+
+      <button class="print-btn" (click)="printSelectedBarcodes()">
+        Print Barcode
+      </button>
     </div>
 
   </div>

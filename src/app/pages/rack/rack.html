@@ -24,9 +24,9 @@
       <thead>
         <tr>
           <th>ID</th>
+          <th>Shelf Name</th>
           <th>Rack Code</th>
           <th>Rack Name</th>
-          <th>Shelf</th>
           <th *ngIf="canEdit()">Edit</th>
           <th *ngIf="canDelete()">Delete</th>
         </tr>
@@ -35,10 +35,10 @@
       <tbody>
         <tr *ngFor="let rack of filteredRacks">
           <td>{{ getId(rack) }}</td>
+          <td>{{ getShelfName(getShelfId(rack)) }}</td>
           <td>{{ getRackCode(rack) }}</td>
           <td>{{ getRackName(rack) }}</td>
-          <td>{{ getShelfName(rack) }}</td>
-
+          
           <td *ngIf="canEdit()">
             <button class="edit-btn" (click)="editRack(rack)">
               Edit
@@ -94,7 +94,7 @@
         <option
           *ngFor="let shelf of shelves"
           [ngValue]="getId(shelf)">
-          {{ getShelfCode(shelf) }} - {{ getShelfNameFromShelf(shelf) }}
+          {{ getShelfNameFromShelf(shelf) }}
         </option>
       </select>
     </div>

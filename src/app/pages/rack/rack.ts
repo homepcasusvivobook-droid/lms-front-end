@@ -72,8 +72,12 @@ export class Rack implements OnInit {
     return rack.shelfId || rack.ShelfId || 0;
   }
 
-  getShelfName(rack: any): string {
-    return rack.shelfName || rack.ShelfName || '';
+  getShelfName(id: number): string {
+    const shelf = this.shelves.find((x: any) =>
+      Number(x.id || x.Id) === Number(id)
+    );
+
+    return shelf?.shelfName || shelf?.ShelfName || '';
   }
 
   getShelfCode(shelf: any): string {
@@ -87,11 +91,15 @@ export class Rack implements OnInit {
   loadShelves(): void {
     this.api.getShelves().subscribe({
       next: (data: any) => {
-        const list = Array.isArray(data) ? data : (data?.$values || []);
+        const list = Array.isArray(data)
+          ? data
+          : (data?.$values || []);
 
-        this.shelves = list.sort((a: any, b: any) =>
-          this.getShelfCode(a).localeCompare(this.getShelfCode(b))
-        );
+        this.shelves = list.sort((a: any, b: any) => {
+          const idA = Number(a.id || a.Id || 0);
+          const idB = Number(b.id || b.Id || 0);
+          return idB - idA;
+        });
       },
       error: (err: any) => {
         console.log(err);
@@ -103,11 +111,15 @@ export class Rack implements OnInit {
   loadRacks(): void {
     this.api.getRacks().subscribe({
       next: (data: any) => {
-        const list = Array.isArray(data) ? data : (data?.$values || []);
+        const list = Array.isArray(data)
+          ? data
+          : (data?.$values || []);
 
-        this.racks = list.sort((a: any, b: any) =>
-          this.getRackCode(a).localeCompare(this.getRackCode(b))
-        );
+        this.racks = list.sort((a: any, b: any) => {
+          const idA = Number(a.id || a.Id || 0);
+          const idB = Number(b.id || b.Id || 0);
+          return idB - idA;
+        });
       },
       error: (err: any) => {
         console.log(err);
@@ -123,7 +135,7 @@ export class Rack implements OnInit {
       this.getId(x).toString().includes(search) ||
       this.getRackCode(x).toLowerCase().includes(search) ||
       this.getRackName(x).toLowerCase().includes(search) ||
-      this.getShelfName(x).toLowerCase().includes(search)
+      this.getShelfName(this.getShelfId(x)).toLowerCase().includes(search)
     );
   }
 
@@ -166,17 +178,6 @@ export class Rack implements OnInit {
 
     if (!this.rackForm.shelfId || Number(this.rackForm.shelfId) <= 0) {
       alert('Select Shelf');
-      return;
-    }
-
-    const duplicateCode = this.racks.find((x: any) =>
-      this.getRackCode(x).toLowerCase() ===
-      this.rackForm.rackCode.trim().toLowerCase() &&
-      this.getId(x) !== this.rackForm.id
-    );
-
-    if (duplicateCode) {
-      alert('Rack Code already exists');
       return;
     }
 

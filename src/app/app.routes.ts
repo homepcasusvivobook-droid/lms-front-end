@@ -22,6 +22,8 @@ import { authGuard } from './guards/auth-guard';
 
 import { ChangePassword } from './pages/change-password/change-password';
 
+import { Currencies } from './pages/currencies/currencies';
+
 const allRoles = ['Admin', 'Secretary', 'Treasurer', 'Internal Auditor', 'Librarian', 'Assistant Librarian'];
 
 const noTreasurer = ['Admin', 'Secretary', 'Internal Auditor', 'Librarian', 'Assistant Librarian'];
@@ -149,6 +151,12 @@ export const routes: Routes = [
   {
     path: 'member-types',
     component: MemberTypes,
+    canActivate: [authGuard],
+    data: { roles: masterEntryRoles }
+  },
+  {
+    path: 'currencies',
+    component: Currencies,
     canActivate: [authGuard],
     data: { roles: masterEntryRoles }
   },

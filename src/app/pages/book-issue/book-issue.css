@@ -1,6 +1,6 @@
 .book-issue-page {
   padding: 22px 28px;
-  background: #ffffff; /* Main background remains white */
+  background: #ffffff;
   min-height: 100vh;
 }
 
@@ -10,7 +10,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 25px;
+  margin-bottom: 22px;
 }
 
 .page-header h1 {
@@ -36,32 +36,34 @@
   cursor: pointer;
 }
 
-.export-btn {
-  background: #16a34a;
-}
-
-.issue-btn {
-  background: #1e2b5c;
-}
+.export-btn { background: #16a34a; }
+.issue-btn { background: #1e2b5c; }
 
 /* FILTER AREA */
 
 .filter-area {
-  margin-bottom: 15px;
+  margin-bottom: 8px;
 }
 
 .filter-row {
   display: flex;
   align-items: end;
-  gap: 34px;
+  gap: 18px;
 }
 
 .row-one {
-  margin-bottom: 22px;
+  margin-bottom: 8px;
+}
+
+.search-row {
+  display: grid;
+  grid-template-columns: 70% 150px;
+  gap: 14px;
+  align-items: center;
 }
 
 .search-input {
-  width: 900px;
+  width: 100%;
   height: 40px;
   padding: 0 14px;
   border: 1px solid #d1d5db;
@@ -70,6 +72,15 @@
   font-size: 13px;
   box-sizing: border-box;
   outline: none;
+}
+
+.compact-filter-row {
+  display: flex;
+  align-items: end;
+  gap: 18px;
+  flex-wrap: nowrap;
+  margin-top: 4px;
+  margin-bottom: 8px;
 }
 
 .radio-section {
@@ -84,14 +95,13 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
-  white-space: nowrap;
 }
 
 .radio-section input {
-  width: 19px;
-  height: 15px;
+  width: 17px;
+  height: 17px;
 }
 
 .date-filter {
@@ -100,8 +110,8 @@
 }
 
 .date-filter label {
-  margin-bottom: 8px;
-  font-size: 14px;
+  margin-bottom: 4px;
+  font-size: 13px;
   font-weight: 700;
   color: #111827;
 }
@@ -110,7 +120,7 @@
 .date-filter select {
   width: 150px;
   height: 40px;
-  padding: 0 14px;
+  padding: 0 12px;
   border: 1px solid #d1d5db;
   border-radius: 8px;
   background: white;
@@ -129,6 +139,27 @@
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
+}
+
+/* TOP SCROLLBAR */
+
+.scroll-search-row {
+  display: block;
+}
+
+.top-scrollbar {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  height: 18px;
+  margin-bottom: 6px;
+  border: 1px solid #dbe1ea;
+  border-radius: 8px;
+  background: #f9fafb;
+}
+
+.top-scroll-content {
+  height: 1px;
 }
 
 /* TABLE */
@@ -150,10 +181,11 @@
 .issue-table td {
   border-bottom: 1px solid #e5e7eb;
   border-right: 1px solid #eef2f7;
-  padding: 10px 12px;
+  padding: 7px 6px;
   font-size: 13px;
   text-align: left;
   vertical-align: middle;
+  white-space: nowrap;
 }
 
 .issue-table th {
@@ -165,102 +197,92 @@
   z-index: 2;
 }
 
-/* COLUMN WIDTHS */
+/* COMPACT COLUMN WIDTHS */
 
-/* Cardex No */
 .issue-table th:nth-child(1),
 .issue-table td:nth-child(1) {
-  width: 65px;
-  min-width: 65px;
+  width: 45px;
+  min-width: 45px;
+  text-align: center;
 }
 
-/* Member Name */
 .issue-table th:nth-child(2),
 .issue-table td:nth-child(2) {
-  width: 100px;
-  min-width: 100px;
+  width: 45px;
+  min-width: 45px;
 }
 
-/* Book Title */
 .issue-table th:nth-child(3),
 .issue-table td:nth-child(3) {
-  width: 200px;
-  min-width: 200px;
-}
-
-/* Issue Date */
-.issue-table th:nth-child(4),
-.issue-table td:nth-child(4),
-
-/* Due Date */
-.issue-table th:nth-child(5),
-.issue-table td:nth-child(5),
-
-/* Return Date */
-.issue-table th:nth-child(6),
-.issue-table td:nth-child(6) {
   width: 70px;
   min-width: 70px;
 }
 
-/* Status */
-.issue-table th:nth-child(7),
-.issue-table td:nth-child(7) {
-  width: 50px;
-  min-width: 50px;
+.issue-table th:nth-child(4),
+.issue-table td:nth-child(4) {
+  width: 70px;
+  min-width: 70px;
 }
 
-/* Return */
-.issue-table th:nth-child(8),
-.issue-table td:nth-child(8) {
-  width: 80px;
-  min-width: 80px;
+.issue-table th:nth-child(5),
+.issue-table td:nth-child(5) {
+  width: 70px;
+  min-width: 70px ;
 }
 
-/* Re-Issue */
-.issue-table th:nth-child(9),
-.issue-table td:nth-child(9),
-
-/* Edit */
-.issue-table th:nth-child(10),
-.issue-table td:nth-child(10),
-
-/* Delete */
-.issue-table th:nth-child(11),
-.issue-table td:nth-child(11),
-
-/* TrnsID */
-.issue-table th:nth-child(12),
-.issue-table td:nth-child(12) {
+.issue-table th:nth-child(6),
+.issue-table td:nth-child(6) {
   width: 40px;
   min-width: 40px;
+}
+
+.issue-table th:nth-child(7),
+.issue-table td:nth-child(7) {
+  width: 150px;
+  min-width: 150px;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.issue-table th:nth-child(8),
+.issue-table td:nth-child(8) {
+  width: 70px;
+  min-width: 70px;
   text-align: center;
 }
 
-/* Phone No */
+.issue-table th:nth-child(9),
+.issue-table td:nth-child(9),
+.issue-table th:nth-child(10),
+.issue-table td:nth-child(10) {
+  width: 70px;
+  min-width: 70px;
+  text-align: center;
+}
+
+.issue-table th:nth-child(11),
+.issue-table td:nth-child(11),
+.issue-table th:nth-child(12),
+.issue-table td:nth-child(12),
 .issue-table th:nth-child(13),
 .issue-table td:nth-child(13) {
-  width: 40px;
-  min-width: 40px;
+  width: 15px;
+  min-width: 15px;
 }
 
-/* ISBN */
 .issue-table th:nth-child(14),
-.issue-table td:nth-child(14) {
-  width: 50px;
-  min-width: 50px;
+.issue-table td:nth-child(14),
+.issue-table th:nth-child(15),
+.issue-table td:nth-child(15) {
+  width: 70px;
+  min-width: 70px;
+  text-align: center;
 }
 
-/* Remarks */
-/* Remarks */
-.issue-table th:nth-child(15),
-.issue-table td:nth-child(15) 
-{
-  width: 200px;
-  min-width: 200px;
-  max-width: 200px; 
-  white-space: normal;
-  word-break: break-word;
+.issue-table th:nth-child(16),
+.issue-table td:nth-child(16) {
+  width: 20px;
+  min-width: 20px;
 }
 
 .no-data {
@@ -268,6 +290,45 @@
   text-align: center;
   color: #6b7280;
   font-size: 14px;
+}
+
+/* PAGINATION */
+
+.pagination-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.page-btn,
+.page-number {
+  border: none;
+  border-radius: 6px;
+  padding: 7px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.page-number.active {
+  background: #2563eb;
+  color: white;
+}
+
+.page-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.page-info {
+  margin-left: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
 }
 
 /* STATUS */
@@ -297,37 +358,24 @@
 .return-btn,
 .delete-btn {
   border: none;
-  height: 42px;
-  min-width: 82px;
-  padding: 0 14px;
+  height: 38px;
+  min-width: 78px;
+  padding: 0 12px;
   border-radius: 8px;
   color: white;
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
-
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
   white-space: nowrap;
 }
 
-.edit-btn {
-  background: #2563eb;
-}
-
-.issue-btn-small {
-  background: #1e293b;
-}
-
-.return-btn {
-  background: #16a34a;
-}
-
-.delete-btn {
-  background: #dc2626;
-}
+.edit-btn { background: #2563eb; }
+.issue-btn-small { background: #1e293b; }
+.return-btn { background: #16a34a; }
+.delete-btn { background: #dc2626; }
 
 .edit-btn:disabled,
 .return-btn:disabled {
@@ -356,13 +404,8 @@
   padding: 24px;
 }
 
-.large-modal {
-  width: 90%;
-}
-
-.small-modal {
-  width: 520px;
-}
+.large-modal { width: 90%; }
+.small-modal { width: 520px; }
 
 .modal-header {
   display: flex;
@@ -547,56 +590,11 @@
   cursor: pointer;
 }
 
-.cancel-btn {
-  background: #6b7280;
-}
+.cancel-btn { background: #6b7280; }
+.save-btn { background: #16a34a; }
 
-.save-btn {
-  background: #16a34a;
-}
-/* RESPONSIVE */
+/* MEMBER SUMMARY CARD */
 
-@media (max-width: 1300px) {
-  .filter-area {
-    grid-template-columns: 1fr;
-  }
-
-  .filter-right {
-    max-width: 560px;
-  }
-}
-
-@media (max-width: 768px) {
-  .filter-right,
-  .top-search-grid,
-  .copy-select-row {
-    grid-template-columns: 1fr;
-  }
-
-  .search-btn-wrapper {
-    width: 100%;
-  }
-
-  .modal-box,
-  .large-modal,
-  .small-modal {
-    width: 96%;
-  }
-  /* EDITED BUTTON */
-.edit-btn.edited-btn {
-  background: #f59e0b !important;
-  color: white !important;
-  border: none !important;
-}
-
-/* REISSUED BUTTON */
-.issue-btn-small.reissued-btn {
-  background: #7c3aed !important;
-  color: white !important;
-  border: none !important;
-}
-}
-/* BOOK ISSUE MEMBER CARD */
 .member-summary-card {
   margin: 10px 0 !important;
   padding: 10px !important;
@@ -638,3 +636,36 @@
 .blue-box { background: #eff6ff !important; }
 .purple-box { background: #f5f3ff !important; }
 .yellow-box { background: #fefce8 !important; }
+
+/* RESPONSIVE */
+
+@media (max-width: 1300px) {
+  .compact-filter-row {
+    flex-wrap: wrap;
+  }
+
+  .search-row {
+    grid-template-columns: 1fr 150px;
+  }
+}
+
+@media (max-width: 768px) {
+  .top-search-grid,
+  .copy-select-row {
+    grid-template-columns: 1fr;
+  }
+
+  .compact-filter-row {
+    flex-wrap: wrap;
+  }
+
+  .search-row {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-box,
+  .large-modal,
+  .small-modal {
+    width: 96%;
+  }
+}

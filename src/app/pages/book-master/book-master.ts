@@ -180,12 +180,10 @@ canDelete(): boolean {
       this.books = this.normalizeArray(data);
 
       // SORT BY ID ASCENDING
-      this.books.sort((a: any, b: any) => {
-        const idA = Number(a.id || a.Id || 0);
-        const idB = Number(b.id || b.Id || 0);
-
-        return idA - idB;
-      });
+      this.books.sort((a: any, b: any) =>
+        Number(b.id || b.Id || 0) -
+        Number(a.id || a.Id || 0)
+      );
 
     },
     error: (err: any) => {

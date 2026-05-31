@@ -18,10 +18,11 @@ export class BookPurchase implements OnInit {
 
   userType = localStorage.getItem('userType') || '';
   userName = localStorage.getItem('userName') || 'Admin';
-
+  
   books: any[] = [];
   shelves: any[] = [];
   racks: any[] = [];
+  currencies: any[] = [];
 
   searchText = '';
   fromDate = '2026-01-01';
@@ -55,6 +56,7 @@ export class BookPurchase implements OnInit {
     this.loadBooks();
     this.loadShelves();
     this.loadRacks();
+    this.loadCurrencies();
   }
 
   loadPurchases(): void {
@@ -67,7 +69,7 @@ export class BookPurchase implements OnInit {
         this.purchases.sort((a: any, b: any) => {
           const idA = Number(a.id || a.Id || 0);
           const idB = Number(b.id || b.Id || 0);
-          return idA - idB;
+          return idB - idA;
         });
 
         this.onSearch();
@@ -182,35 +184,70 @@ export class BookPurchase implements OnInit {
 
   calculateAed(): void {
   const total = Number(this.purchaseForm.totalCost) || 0;
-  const rate = Number(this.purchaseForm.conversionRate) || 1;
+  const rate = Number(this.purchaseForm.conversionRate) || 0;
 
-  this.purchaseForm.totalCostAed =
-    this.purchaseForm.currency === 'AED'
-      ? total
-      : total / rate;
+  const defaultCurrency = this.currencies.find((x: any) => x.isDefault);
+  const defaultCode = defaultCurrency?.currencyCode || 'AED';
+
+  let aed = 0;
+
+  if (this.purchaseForm.currency === defaultCode) {
+    aed = total;
+  } else if (rate > 0) {
+    aed = total / rate;
+  }
+
+  this.purchaseForm.totalCostAed = Number(aed.toFixed(2));
+}
+
+onCurrencyChange(): void {
+  const defaultCurrency = this.currencies.find((x: any) => x.isDefault);
+  const defaultCode = defaultCurrency?.currencyCode || 'AED';
+
+  if (this.purchaseForm.currency === defaultCode) {
+    this.purchaseForm.conversionRate = 1;
+  } else {
+    this.purchaseForm.conversionRate = null;
+  }
+
+  this.calculateAed();
 }
 
   savePurchase(): void {
 
-    if (!this.purchaseForm.purchaseDate) {
-      alert('Purchase Date is required');
+    this.purchaseForm.invoiceNo = this.purchaseForm.invoiceNo?.trimStart() || '';
+    this.purchaseForm.storeName = this.purchaseForm.storeName?.trimStart() || '';
+    this.purchaseForm.sponsorName = this.purchaseForm.sponsorName?.trimStart() || '';
+
+    if (this.purchaseForm.currency !== 'AED' && !Number(this.purchaseForm.conversionRate)) {
+      alert('Conversion Rate is required');
       return;
     }
+if (!this.purchaseForm.purchaseDate) {
+  alert('Purchase Date is required');
+  return;
+}
 
-    if (this.purchaseForm.purchaseType === 'Purchase') {
-    if (!this.purchaseForm.invoiceNo?.trim()) {
-          alert('Invoice No is required');
-          return;
-        }
+if (this.purchaseForm.purchaseType === 'Purchase') {
+  if (!this.purchaseForm.invoiceNo?.trim()) {
+    alert('Invoice No is required');
+    return;
+  }
 
   if (!this.purchaseForm.storeName?.trim()) {
     alert('Store Name is required');
     return;
   }
 }
+
     const payload = {
-  invoiceNo: this.purchaseForm.invoiceNo,
-  storeName: this.purchaseForm.storeName,
+  invoiceNo: this.purchaseForm.purchaseType === 'Purchase'
+  ? this.purchaseForm.invoiceNo
+  : '',
+
+storeName: this.purchaseForm.purchaseType === 'Purchase'
+  ? this.purchaseForm.storeName
+  : null,
   purchaseDate: this.purchaseForm.purchaseDate,
   totalCost: Number(this.purchaseForm.totalCost),
   remarks: this.purchaseForm.remarks,
@@ -219,7 +256,9 @@ export class BookPurchase implements OnInit {
   currency: this.purchaseForm.currency,
   conversionRate: Number(this.purchaseForm.conversionRate),
   totalCostAed: Number(this.purchaseForm.totalCostAed),
-  sponsorName: this.purchaseForm.sponsorName,
+  sponsorName: this.purchaseForm.purchaseType === 'Sponsorship'
+  ? this.purchaseForm.sponsorName
+  : null,
 
   createdBy: this.userName,
 
@@ -241,7 +280,12 @@ export class BookPurchase implements OnInit {
       },
       error: (err: any) => {
         console.log(err);
-        alert('Error while saving purchase');
+        alert(
+          err?.error?.message ||
+          err?.error ||
+          err?.message ||
+          'Error while saving purchase'
+        );
       }
     });
   }
@@ -306,8 +350,21 @@ export class BookPurchase implements OnInit {
   }
 
   updatePurchase(): void {
+  this.purchaseForm.invoiceNo = this.purchaseForm.invoiceNo?.trimStart() || '';
+  this.purchaseForm.storeName = this.purchaseForm.storeName?.trimStart() || '';
+  this.purchaseForm.sponsorName = this.purchaseForm.sponsorName?.trimStart() || '';
+
+  if (this.purchaseForm.currency !== 'AED' && !Number(this.purchaseForm.conversionRate)) {
+    alert('Conversion Rate is required');
+    return;
+} 
     
-    
+  if (!this.purchaseForm.purchaseDate) {
+  alert('Purchase Date is required');
+  return;
+}
+
+if (this.purchaseForm.purchaseType === 'Purchase') {
   if (!this.purchaseForm.invoiceNo?.trim()) {
     alert('Invoice No is required');
     return;
@@ -317,12 +374,17 @@ export class BookPurchase implements OnInit {
     alert('Store Name is required');
     return;
   }
+}
 
     const payload = {
   id: this.purchaseForm.id,
 
-  invoiceNo: this.purchaseForm.invoiceNo,
-  storeName: this.purchaseForm.storeName,
+  invoiceNo: this.purchaseForm.purchaseType === 'Purchase'
+  ? this.purchaseForm.invoiceNo
+  : '',
+  storeName: this.purchaseForm.purchaseType === 'Purchase'
+  ? this.purchaseForm.storeName
+  : null,
   purchaseDate: this.purchaseForm.purchaseDate,
   totalCost: Number(this.purchaseForm.totalCost),
   remarks: this.purchaseForm.remarks,
@@ -331,7 +393,9 @@ export class BookPurchase implements OnInit {
   currency: this.purchaseForm.currency,
   conversionRate: Number(this.purchaseForm.conversionRate),
   totalCostAed: Number(this.purchaseForm.totalCostAed),
-  sponsorName: this.purchaseForm.sponsorName,
+  sponsorName: this.purchaseForm.purchaseType === 'Sponsorship'
+  ? this.purchaseForm.sponsorName
+  : null,
 
   editedBy: this.userName,
 
@@ -354,7 +418,12 @@ export class BookPurchase implements OnInit {
       },
       error: (err: any) => {
         console.log(err);
-        alert('Error while updating purchase');
+        alert(
+        err?.error?.message ||
+        err?.error ||
+        err?.message ||
+        'Error while updating purchase'
+      );
       }
     });
   }
@@ -465,6 +534,16 @@ export class BookPurchase implements OnInit {
     const shelf = this.shelves.find((x: any) => (x.id || x.Id) == id);
     return shelf?.shelfName || shelf?.ShelfName || shelf?.name || '';
   }
+
+  getRacksByShelf(shelfId: any): any[] {
+  if (!shelfId) {
+    return [];
+  }
+
+  return this.racks.filter((r: any) =>
+    Number(r.shelfId || r.ShelfId) === Number(shelfId)
+  );
+}
 
   getRackName(id: number): string {
     const rack = this.racks.find((x: any) => (x.id || x.Id) == id);
@@ -633,5 +712,27 @@ canEdit(): boolean {
 canDelete(): boolean {
   return ['Admin', 'Secretary']
     .includes(this.userType);
+}
+loadCurrencies(): void {
+  this.api.getCurrencies().subscribe({
+    next: (res: any) => {
+      this.currencies = Array.isArray(res)
+        ? res
+        : (res?.$values || []);
+
+      const defaultCurrency =
+        this.currencies.find((x: any) => x.isDefault);
+
+      if (defaultCurrency) {
+        this.purchaseForm.currency =
+          defaultCurrency.currencyCode;
+      }
+
+      this.onCurrencyChange();
+    },
+    error: (err: any) => {
+      console.log(err);
+    }
+  });
 }
 }

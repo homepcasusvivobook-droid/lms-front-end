@@ -1,12 +1,78 @@
-<h2>Dashboard</h2>
+<div class="dashboard-container">
 
-<div class="cards">
-  <div class="card">Total Members <b>{{ summary.totalMembers }}</b></div>
-  <div class="card">Active Members <b>{{ summary.activeMembers }}</b></div>
-  <div class="card">Total Books <b>{{ summary.totalBooks }}</b></div>
-  <div class="card">Total Copies <b>{{ summary.totalCopies }}</b></div>
-  <div class="card">Available Copies <b>{{ summary.availableCopies }}</b></div>
-  <div class="card">Issued Copies <b>{{ summary.issuedCopies }}</b></div>
-  <div class="card">Overdue Books <b>{{ summary.overdueBooks }}</b></div>
-  <div class="card">Total Purchases <b>{{ summary.totalPurchases }}</b></div>
+  <div class="dashboard-header">
+
+    <h2>Dashboard</h2>
+
+    <div class="year-filter">
+
+      <label>Select Year</label>
+
+      <select
+        [(ngModel)]="selectedYear"
+        (change)="onYearChange()">
+
+        <option
+          *ngFor="let year of years"
+          [value]="year">
+
+          {{ year }}
+
+        </option>
+
+      </select>
+
+    </div>
+
+  </div>
+
+  <div class="cards">
+
+    <div class="card">
+      <span>Total Members</span>
+      <b>{{ summary.totalMembers }}</b>
+    </div>
+
+    <div class="card">
+      <span>Active Members</span>
+      <b>{{ summary.activeMembers }}</b>
+    </div>
+
+    <div class="card">
+      <span>Total Books</span>
+      <b>{{ summary.totalBooks }}</b>
+    </div>
+
+    <div class="card">
+      <span>Total Copies</span>
+      <b>{{ summary.totalCopies }}</b>
+    </div>
+
+    <div class="card">
+      <span>Available Copies</span>
+      <b>{{ summary.availableCopies }}</b>
+    </div>
+
+    <div class="card">
+      <span>Issued Copies</span>
+      <b>{{ summary.issuedCopies }}</b>
+    </div>
+
+    <div class="card">
+      <span>Overdue Books</span>
+      <b>{{ summary.overdueBooks }}</b>
+    </div>
+
+    <div class="card">
+      <span>Total Purchases</span>
+      <b>{{ summary.totalPurchases }}</b>
+    </div>
+
+    <div class="card">
+      <span>Total Purchase Cost</span>
+      <b>{{ summary.totalPurchaseCost | number:'1.2-2' }}</b>
+    </div>
+
+  </div>
+
 </div>

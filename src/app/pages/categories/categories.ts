@@ -89,15 +89,19 @@ export class Categories implements OnInit {
   }
 
   get filteredCategories() {
-    const search = this.searchText.toLowerCase();
+  const search = this.searchText.toLowerCase().trim();
 
-    return this.categories.filter((x: any) =>
+  return this.categories
+    .filter((x: any) =>
       this.getId(x).toString().includes(search) ||
       this.getCategoryCode(x).toLowerCase().includes(search) ||
       this.getCategoryName(x).toLowerCase().includes(search) ||
       this.getCategoryPrefix(x).toLowerCase().includes(search)
+    )
+    .sort((a: any, b: any) =>
+      Number(this.getId(b)) - Number(this.getId(a))
     );
-  }
+}
 
   addCategory(): void {
     this.isEdit = false;

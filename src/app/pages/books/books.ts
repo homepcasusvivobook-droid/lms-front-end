@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import * as XLSX from 'xlsx';
+import JsBarcode from 'jsbarcode';
 
 import { Api } from '../../services/api';
 
@@ -19,10 +20,19 @@ export class Books implements OnInit {
 
   books: any[] = [];
   searchText = '';
+  selectedCategory = 'All';
 
   showViewModal = false;
   selectedBook: any = null;
   rackShelfSummary: any[] = [];
+
+  showBarcodeReprintModal = false;
+  bookCopiesForReprint: any[] = [];
+  barcodeSearchText = '';
+  selectedBarcodeBookId: any = '';
+  selectedBookCopyId: any = '';
+  selectedBarcodeCopies: any[] = [];
+  showBarcodeSuggestions = false;
 
   constructor(
     private api: Api,
@@ -40,11 +50,9 @@ export class Books implements OnInit {
           ? data
           : (data?.$values || []);
 
-        this.books.sort((a: any, b: any) => {
-          const idA = Number(a.id || a.Id || 0);
-          const idB = Number(b.id || b.Id || 0);
-          return idA - idB;
-        });
+        this.books.sort((a: any, b: any) =>
+          Number(b.id || b.Id || 0) - Number(a.id || a.Id || 0)
+        );
       },
       error: (err: any) => {
         console.log(err);
@@ -53,19 +61,35 @@ export class Books implements OnInit {
     });
   }
 
+  get categories(): string[] {
+    const list = this.books
+      .map((x: any) => this.getCategory(x))
+      .filter((x: string) => x);
+
+    return ['All', ...Array.from(new Set(list)).sort()];
+  }
+
   get filteredBooks() {
     const search = this.searchText.toLowerCase();
 
-    return this.books.filter((x: any) =>
-      this.getCustomBarcode(x).toLowerCase().includes(search) ||
-      this.getTitle(x).toLowerCase().includes(search) ||
-      this.getAuthor(x).toLowerCase().includes(search) ||
-      this.getPublisher(x).toLowerCase().includes(search) ||
-      this.getLanguage(x).toLowerCase().includes(search) ||
-      this.getCategory(x).toLowerCase().includes(search) ||
-      this.getTotalCopies(x).toString().includes(search) ||
-      this.getAvailableCopies(x).toString().includes(search)
-    );
+    return this.books.filter((x: any) => {
+      const matchesCategory =
+        this.selectedCategory === 'All' ||
+        this.getCategory(x) === this.selectedCategory;
+
+      const matchesSearch =
+        this.getISBN(x).toLowerCase().includes(search) ||
+        this.getCustomBarcode(x).toLowerCase().includes(search) ||
+        this.getTitle(x).toLowerCase().includes(search) ||
+        this.getAuthor(x).toLowerCase().includes(search) ||
+        this.getPublisher(x).toLowerCase().includes(search) ||
+        this.getLanguage(x).toLowerCase().includes(search) ||
+        this.getCategory(x).toLowerCase().includes(search) ||
+        this.getTotalCopies(x).toString().includes(search) ||
+        this.getAvailableCopies(x).toString().includes(search);
+
+      return matchesCategory && matchesSearch;
+    });
   }
 
   exportExcel(): void {
@@ -88,6 +112,7 @@ export class Books implements OnInit {
         if (summary.length === 0) {
           exportData.push({
             ID: book.id || book.Id,
+            ISBN: this.getISBN(book),
             'Custom Barcode': this.getCustomBarcode(book),
             Title: this.getTitle(book),
             Author: this.getAuthor(book),
@@ -106,6 +131,7 @@ export class Books implements OnInit {
           summary.forEach((item: any) => {
             exportData.push({
               ID: book.id || book.Id,
+              ISBN: this.getISBN(book),
               'Custom Barcode': this.getCustomBarcode(book),
               Title: this.getTitle(book),
               Author: this.getAuthor(book),
@@ -161,6 +187,265 @@ export class Books implements OnInit {
     this.rackShelfSummary = [];
   }
 
+  openBarcodeReprintModal(): void {
+    this.barcodeSearchText = '';
+    this.selectedBarcodeBookId = '';
+    this.selectedBookCopyId = '';
+    this.selectedBarcodeCopies = [];
+    this.showBarcodeSuggestions = false;
+
+    this.api.getBookCopiesForReprint().subscribe({
+      next: (res: any) => {
+        this.bookCopiesForReprint = Array.isArray(res)
+          ? res
+          : (res?.$values || []);
+
+        this.showBarcodeReprintModal = true;
+      },
+      error: (err: any) => {
+        console.log(err);
+        alert('Failed to load book copies');
+      }
+    });
+  }
+
+  closeBarcodeReprintModal(): void {
+    this.showBarcodeReprintModal = false;
+    this.barcodeSearchText = '';
+    this.selectedBarcodeBookId = '';
+    this.selectedBookCopyId = '';
+    this.selectedBarcodeCopies = [];
+    this.showBarcodeSuggestions = false;
+  }
+
+  get filteredBookSearchResults() {
+    const search = this.barcodeSearchText.toLowerCase().trim();
+
+    if (!search) {
+      return [];
+    }
+
+    const bookMap = new Map<number, any>();
+
+    this.bookCopiesForReprint.forEach((copy: any) => {
+      const bookId = copy.bookId || copy.BookId || 0;
+
+      const matches =
+        this.getCopyISBN(copy).toLowerCase().includes(search) ||
+        this.getCopyTitle(copy).toLowerCase().includes(search) ||
+        this.getCopyBarcode(copy).toLowerCase().includes(search) ||
+        this.getCopyCustomBarcode(copy).toLowerCase().includes(search);
+
+      if (matches && bookId > 0 && !bookMap.has(bookId)) {
+        bookMap.set(bookId, copy);
+      }
+    });
+
+    return Array.from(bookMap.values());
+  }
+
+  get filteredBookCopiesForReprint() {
+    if (!this.selectedBarcodeBookId) {
+      return [];
+    }
+
+    return this.bookCopiesForReprint.filter((x: any) =>
+      Number(x.bookId || x.BookId || 0) === Number(this.selectedBarcodeBookId)
+    );
+  }
+
+  onBarcodeSearchChange(): void {
+    this.selectedBarcodeBookId = '';
+    this.selectedBookCopyId = '';
+    this.showBarcodeSuggestions = this.barcodeSearchText.trim().length > 0;
+  }
+
+  selectBarcodeSearchItem(copy: any): void {
+    this.selectedBarcodeBookId = copy.bookId || copy.BookId || '';
+
+    this.barcodeSearchText =
+      `${this.getCopyTitle(copy)} | ISBN: ${this.getCopyISBN(copy)}`;
+
+    this.selectedBookCopyId = '';
+    this.showBarcodeSuggestions = false;
+  }
+
+  addBarcodeCopy(): void {
+    if (!this.selectedBookCopyId) {
+      alert('Select Book Copy');
+      return;
+    }
+
+    const copy = this.bookCopiesForReprint.find((x: any) =>
+      Number(this.getCopyId(x)) === Number(this.selectedBookCopyId)
+    );
+
+    if (!copy) {
+      alert('Invalid Book Copy');
+      return;
+    }
+
+    const alreadyAdded = this.selectedBarcodeCopies.find((x: any) =>
+      Number(this.getCopyId(x)) === Number(this.getCopyId(copy))
+    );
+
+    if (alreadyAdded) {
+      alert('This book copy already added');
+      return;
+    }
+
+    this.selectedBarcodeCopies.push(copy);
+    this.selectedBookCopyId = '';
+  }
+
+  removeBarcodeCopy(index: number): void {
+    this.selectedBarcodeCopies.splice(index, 1);
+  }
+
+  printSelectedBarcodes(): void {
+    if (this.selectedBarcodeCopies.length === 0) {
+      alert('Please add at least one book copy');
+      return;
+    }
+
+    let labelsHtml = '';
+
+    this.selectedBarcodeCopies.forEach((copy: any) => {
+      const barcode = this.getCopyBarcode(copy);
+      const title = this.getCopyTitle(copy);
+
+      for (let i = 0; i < 3; i++) {
+        labelsHtml += `
+          <div class="barcode-label">
+            <div class="library-name">St. Thomas OCYM Library, Dubai</div>
+            <div class="barcode-number">${barcode}</div>
+            <svg class="barcode-svg" data-barcode="${barcode}"></svg>
+            <div class="book-title">${title}</div>
+          </div>
+        `;
+      }
+    });
+
+    const printWindow = window.open('', '_blank');
+
+    if (!printWindow) {
+      alert('Popup blocked. Please allow popups.');
+      return;
+    }
+
+    printWindow.document.write(`
+      <html>
+      <head>
+        <title>Print Barcode</title>
+        <style>
+          @page {
+            size: A4 portrait;
+            margin: 6mm;
+          }
+
+          body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+          }
+
+          .sheet {
+            display: grid;
+            grid-template-columns: repeat(3, 59mm);
+            column-gap: 9.5mm;
+            row-gap: 5.8mm;
+          }
+
+          .barcode-label {
+            border: 1px solid #000;
+            width: 59mm;
+            height: 29mm;
+            padding: 1.5mm;
+            box-sizing: border-box;
+            text-align: center;
+            overflow: hidden;
+          }
+
+          .library-name {
+            font-size: 9px;
+            font-weight: bold;
+            margin-bottom: 0.5mm;
+          }
+
+          .barcode-number {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 0.5mm;
+          }
+
+          .barcode-svg {
+            width: 100%;
+            height: 10mm;
+          }
+
+          .book-title {
+            font-size: 8px;
+            margin-top: 0.5mm;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+
+          @media print {
+            .no-print {
+              display: none;
+            }
+          }
+        </style>
+      </head>
+
+      <body>
+        <div class="no-print" style="margin:10px; text-align:center;">
+          <button
+            onclick="window.print()"
+            style="
+              padding:10px 24px;
+              font-size:16px;
+              background:#2563eb;
+              color:white;
+              border:none;
+              border-radius:6px;
+              cursor:pointer;
+              font-weight:bold;
+            ">
+            Print Barcode
+          </button>
+        </div>
+
+        <div class="sheet">
+          ${labelsHtml}
+        </div>
+      </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+
+    setTimeout(() => {
+      const svgList = printWindow.document.querySelectorAll('.barcode-svg');
+
+      svgList.forEach((svg: any) => {
+        const value = svg.getAttribute('data-barcode');
+
+        JsBarcode(svg, value, {
+          format: 'CODE128',
+          displayValue: false,
+          margin: 0,
+          height: 38
+        });
+      });
+    }, 500);
+  }
+
+  getISBN(book: any): string {
+    return book?.isbn || book?.ISBN || '';
+  }
+
   getCustomBarcode(book: any): string {
     return book?.customBarcode || book?.CustomBarcode || '';
   }
@@ -206,11 +491,18 @@ export class Books implements OnInit {
   }
 
   getSummaryShelf(item: any): string {
-    return item?.shelfName || item?.ShelfName || '';
+    return this.getCleanName(item?.shelfName || item?.ShelfName || '');
   }
 
   getSummaryRack(item: any): string {
-    return item?.rackName || item?.RackName || '';
+    return this.getCleanName(item?.rackName || item?.RackName || '');
+  }
+
+  getCleanName(value: string): string {
+    if (!value) return '';
+
+    const parts = value.split(' - ');
+    return parts.length > 1 ? parts[parts.length - 1] : value;
   }
 
   getSummaryTotal(item: any): number {
@@ -219,5 +511,33 @@ export class Books implements OnInit {
 
   getSummaryAvailable(item: any): number {
     return item?.availableCount || item?.AvailableCount || 0;
+  }
+
+  getCopyId(copy: any): number {
+    return copy?.copyId || copy?.CopyId || 0;
+  }
+
+  getCopyBarcode(copy: any): string {
+    return copy?.barcode || copy?.Barcode || '';
+  }
+
+  getCopyISBN(copy: any): string {
+    return copy?.isbn || copy?.ISBN || '';
+  }
+
+  getCopyTitle(copy: any): string {
+    return copy?.title || copy?.Title || '';
+  }
+
+  getCopyCustomBarcode(copy: any): string {
+    return copy?.customBarcode || copy?.CustomBarcode || '';
+  }
+
+  getCopyShelf(copy: any): string {
+    return copy?.shelfName || copy?.ShelfName || '';
+  }
+
+  getCopyRack(copy: any): string {
+    return copy?.rackName || copy?.RackName || '';
   }
 }
